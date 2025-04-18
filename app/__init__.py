@@ -67,6 +67,9 @@ def create_app():
     from app.admin import bp as admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
+    from app.message import bp as message_bp
+    app.register_blueprint(message_bp, url_prefix='/message')
+    
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
     

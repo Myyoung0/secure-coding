@@ -63,7 +63,7 @@
                     <div class="col">
                         <div class="card h-100">
                             {% if product.images.first() %}
-                            <img src="{{ url_for('static', filename='uploads/' + product.images.first().filename) }}" class="card-img-top" alt="{{ product.title }}" style="height: 180px; object-fit: cover;">
+                            <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" class="card-img-top" alt="{{ product.title }}" style="height: 180px; object-fit: cover;">
                             {% else %}
                             <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
                                 <span class="text-muted">이미지 없음</span>
@@ -80,8 +80,8 @@
                             </div>
                             <div class="card-footer">
                                 <div class="btn-group w-100" role="group">
-                                    <a href="{{ url_for('product.view', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">보기</a>
-                                    <a href="{{ url_for('product.edit', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
+                                    <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">보기</a>
+                                    <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('product.view', product_id=purchase.product_id) }}" class="btn btn-sm btn-outline-primary">상세</a>
+                                    <a href="{{ url_for('product.view_product', product_id=purchase.product_id) }}" class="btn btn-sm btn-outline-primary">상세</a>
                                 </td>
                             </tr>
                             {% endfor %}

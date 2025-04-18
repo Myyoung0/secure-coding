@@ -9,6 +9,7 @@ from app.product.forms import ProductForm
 from app.models import Product, ProductImage
 from app.auth.utils import token_required
 import uuid
+from flask_wtf.file import FileAllowed
 
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -291,4 +292,55 @@ def api_create_product(current_user):
         'id': product.id,
         'title': product.title,
         'message': '상품이 등록되었습니다.'
-    }), 201 
+    }), 201
+
+@bp.route('/<int:product_id>/purchase', methods=['POST'])
+@login_required
+def purchase_product(product_id):
+    """상품 구매 처리"""
+    product = Product.query.get_or_404(product_id)
+    
+    # 자신의 상품은 구매할 수 없음
+    if current_user.id == product.seller_id:
+        flash('자신의 상품은 구매할 수 없습니다.')
+        return redirect(url_for('product.view_product', product_id=product.id))
+    
+    # 판매 중인 상품만 구매 가능
+    if product.status != 'active':
+        flash('판매 중인 상품만 구매할 수 있습니다.')
+        return redirect(url_for('product.view_product', product_id=product.id))
+    
+    # 사용자 지갑 잔액 확인
+    if not hasattr(current_user, 'wallet') or current_user.wallet is None:
+        flash('지갑이 없습니다. 지갑을 먼저 생성해주세요.')
+        return redirect(url_for('wallet.index'))
+    
+    if current_user.wallet.balance < product.price:
+        flash('잔액이 부족합니다. 충전 후 다시 시도해주세요.')
+        return redirect(url_for('wallet.charge'))
+    
+    try:
+        # 구매자 지갑에서 금액 차감
+        current_user.wallet.balance -= product.price
+        
+        # 판매자 지갑에 금액 추가
+        seller = product.seller
+        if hasattr(seller, 'wallet') and seller.wallet is not None:
+            seller.wallet.balance += product.price
+        
+        # 상품 상태 변경
+        product.status = 'sold'
+        product.buyer_id = current_user.id
+        product.sold_at = datetime.utcnow()
+        
+        db.session.commit()
+        flash('상품 구매가 완료되었습니다!')
+        
+        # 구매 알림 또는 이메일 전송 등 추가 작업 가능
+        
+        return redirect(url_for('product.view_product', product_id=product.id))
+    
+    except Exception as e:
+        db.session.rollback()
+        flash(f'구매 처리 중 오류가 발생했습니다: {str(e)}')
+        return redirect(url_for('product.view_product', product_id=product.id)) 

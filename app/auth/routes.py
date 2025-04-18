@@ -1,10 +1,12 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.auth import bp
 from app.models import User, Wallet
-from app.auth.forms import LoginForm, RegistrationForm
+from app.auth.forms import LoginForm, RegistrationForm, EditProfileForm
 from werkzeug.urls import url_parse
+from werkzeug.utils import secure_filename
+import os
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}받은 메시지함 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">받은 메시지함</h1>
+    
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('message.inbox') }}">받은 메시지</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('message.sent') }}">보낸 메시지</a>
+        </li>
+    </ul>
+    
+    {% if messages %}
+        <div class="list-group">
+            {% for message in messages %}
+                <a href="{{ url_for('message.view', message_id=message.id) }}" class="list-group-item list-group-item-action {% if not message.is_read %}fw-bold{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">
+                            {% if not message.is_read %}
+                            <span class="badge rounded-pill bg-primary me-2">New</span>
+                            {% endif %}
+                            {{ message.sender.username }}
+                        </h5>
+                        <small>{{ message.created_at|date_format }}</small>
+                    </div>
+                    <p class="mb-1 text-truncate">{{ message.content }}</p>
+                    {% if message.product %}
+                        <small class="text-muted">관련 상품: {{ message.product.title }}</small>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">받은 메시지가 없습니다.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

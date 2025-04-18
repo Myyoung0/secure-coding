@@ -143,6 +143,27 @@ class SearchLog(db.Model):
     def __repr__(self):
         return f'<SearchLog {self.id} - {self.query}>'
 
+# 메시지 모델
+class Message(db.Model):
+    __tablename__ = 'messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    content = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read_at = db.Column(db.DateTime, nullable=True)
+    
+    # 관계
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+    product = db.relationship('Product', backref='messages')
+    
+    def __repr__(self):
+        return f'<Message {self.id} - From: {self.sender_id} To: {self.recipient_id}>'
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id)) 

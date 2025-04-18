@@ -71,7 +71,7 @@
                 <div class="d-flex mb-2">
                     <div style="width: 100px;"><strong>판매자</strong></div>
                     <div>
-                        <a href="{{ url_for('user.profile', user_id=product.seller_id) }}" class="text-decoration-none">
+                        <a href="{{ url_for('auth.profile', user_id=product.seller_id) }}" class="text-decoration-none">
                             {{ product.seller.username }}
                         </a>
                     </div>
@@ -161,7 +161,7 @@
                     {% for item in seller_products %}
                         <div class="col mb-4">
                             <div class="card h-100">
-                                <a href="{{ url_for('product.view', product_id=item.id) }}" class="text-decoration-none">
+                                <a href="{{ url_for('product.view_product', product_id=item.id) }}" class="text-decoration-none">
                                     {% if item.thumbnail %}
                                         <img src="{{ url_for('static', filename='uploads/' + item.thumbnail) }}" class="card-img-top" alt="{{ item.title }}" style="height: 150px; object-fit: cover;">
                                     {% else %}
@@ -200,7 +200,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <form action="{{ url_for('product.purchase', product_id=product.id) }}" method="post">
+                <form action="{{ url_for('product.purchase_product', product_id=product.id) }}" method="post">
                     <button type="submit" class="btn btn-primary">구매하기</button>
                 </form>
             </div>
