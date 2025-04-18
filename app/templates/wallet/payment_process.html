@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}결제 진행 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">결제 진행</h2>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <p class="mb-0"><strong>결제 검증에 실패했습니다.</strong> 올바른 인증 코드를 입력해주세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-credit-card-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <p class="mb-0"><strong>결제가 진행 중입니다.</strong> 아래 정보를 확인하고 결제를 완료해주세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h5>결제 정보</h5>
+                        <table class="table">
+                            <tr>
+                                <th width="30%">결제 금액</th>
+                                <td><strong class="text-primary">{{ amount|format_number }}원</strong></td>
+                            </tr>
+                            <tr>
+                                <th>결제 수단</th>
+                                <td>
+                                    {% if payment_method == 'card' %}신용카드
+                                    {% elif payment_method == 'bank' %}계좌이체
+                                    {% elif payment_method == 'virtual' %}가상계좌
+                                    {% elif payment_method == 'phone' %}휴대폰결제
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- 결제사 로고 및 시뮬레이션 -->
+                    <div class="mb-4 p-3 bg-light rounded text-center">
+                        <h4 class="mb-3">가상 결제 시뮬레이션</h4>
+                        <p class="text-muted">실제 환경에서는 결제 대행사의 결제창이 표시됩니다.</p>
+                        
+                        <div class="d-flex justify-content-center gap-3 mb-3">
+                            <img src="https://via.placeholder.com/100x50?text=KakaoPay" alt="KakaoPay" class="img-thumbnail">
+                            <img src="https://via.placeholder.com/100x50?text=NaverPay" alt="NaverPay" class="img-thumbnail">
+                            <img src="https://via.placeholder.com/100x50?text=TossPay" alt="TossPay" class="img-thumbnail">
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <p class="mb-1"><strong>테스트 모드:</strong> 인증코드 <code>1234</code>를 입력하면 결제가 완료됩니다.</p>
+                        </div>
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('wallet.charge_process') }}">
+                        {{ form.hidden_tag() }}
+                        {{ form.amount(type="hidden", value=amount) }}
+                        {{ form.payment_method(type="hidden", value=payment_method) }}
+                        
+                        <div class="mb-4">
+                            <label for="verification_code" class="form-label">결제 인증 코드</label>
+                            <input type="text" class="form-control" id="verification_code" name="verification_code" 
+                                  placeholder="4자리 인증코드를 입력하세요" maxlength="4" required>
+                            <div class="form-text">실제 결제에서는 카드 비밀번호, SMS 인증번호 등이 요청됩니다.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">결제 완료하기</button>
+                            <a href="{{ url_for('wallet.charge') }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

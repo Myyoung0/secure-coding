@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}송금하기 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">송금하기</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <p class="mb-0">현재 잔액: <strong>{{ current_user.wallet.balance|format_number }}원</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('wallet.transfer') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="receiver_email" class="form-label">받는 사람 이메일</label>
+                            {{ form.receiver_email(class="form-control", id="receiver_email", placeholder="받는 사람의 이메일 주소") }}
+                            {% for error in form.receiver_email.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">송금액</label>
+                            <div class="input-group">
+                                {{ form.amount(class="form-control", id="amount", placeholder="송금할 금액") }}
+                                <span class="input-group-text">원</span>
+                            </div>
+                            {% for error in form.amount.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('wallet.index') }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">송금 시 유의사항</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>송금은 이메일 주소로 이루어집니다. 받는 사람의 이메일 주소를 정확히 입력해주세요.</li>
+                        <li>한 번 송금된 금액은 취소할 수 없습니다.</li>
+                        <li>송금 시 수수료는 없습니다.</li>
+                        <li>사기 거래 등에 주의하세요. 플랫폼 내에서 거래를 완료하는 것이 안전합니다.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

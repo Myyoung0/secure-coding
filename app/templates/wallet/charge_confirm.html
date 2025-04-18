@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}충전 확인 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">충전 확인</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <p class="mb-0"><strong>충전을 진행하시겠습니까?</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>충전 정보</h5>
+                        <table class="table">
+                            <tr>
+                                <th width="30%">현재 잔액</th>
+                                <td>{{ current_user.wallet.balance|format_number }}원</td>
+                            </tr>
+                            <tr>
+                                <th>충전액</th>
+                                <td><strong class="text-primary">{{ amount|format_number }}원</strong></td>
+                            </tr>
+                            <tr>
+                                <th>충전 후 잔액</th>
+                                <td><strong>{{ (current_user.wallet.balance + amount)|format_number }}원</strong></td>
+                            </tr>
+                            <tr>
+                                <th>결제 수단</th>
+                                <td>
+                                    {% if payment_method == 'card' %}신용카드
+                                    {% elif payment_method == 'bank' %}계좌이체
+                                    {% elif payment_method == 'virtual' %}가상계좌
+                                    {% elif payment_method == 'phone' %}휴대폰결제
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('wallet.charge_confirm') }}">
+                        {{ form.hidden_tag() }}
+                        {{ form.amount(type="hidden", value=amount) }}
+                        {{ form.payment_method(type="hidden", value=payment_method) }}
+                        
+                        <div class="alert alert-info">
+                            <ul class="mb-0">
+                                <li>결제 진행 시 실제 결제가 이루어집니다.</li>
+                                <li>충전 후에는 환불이 불가능합니다.</li>
+                                <li>충전된 금액은 즉시 계정에 반영됩니다.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">결제 진행하기</button>
+                            <a href="{{ url_for('wallet.charge') }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

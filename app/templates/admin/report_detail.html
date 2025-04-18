@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}신고 #{{ report.id }} - 관리자 페이지{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>신고 상세 정보</h1>
+        <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 목록으로
+        </a>
+    </div>
+    
+    <!-- 신고 정보 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">기본 정보</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>신고 ID</strong></div>
+                <div class="col-md-9">{{ report.id }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>신고 상태</strong></div>
+                <div class="col-md-9">
+                    {% if report.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">대기중</span>
+                    {% elif report.status == 'reviewed' %}
+                    <span class="badge bg-success">검토완료</span>
+                    {% else %}
+                    <span class="badge bg-danger">기각됨</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>신고일</strong></div>
+                <div class="col-md-9">{{ report.created_at|format_datetime }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>신고자</strong></div>
+                <div class="col-md-9">
+                    <a href="{{ url_for('admin.user_detail', user_id=reporter.id) }}">
+                        {{ reporter.username }} ({{ reporter.email }})
+                    </a>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>신고 대상</strong></div>
+                <div class="col-md-9">
+                    <a href="{{ url_for('admin.user_detail', user_id=reported.id) }}">
+                        {{ reported.username }} ({{ reported.email }})
+                    </a>
+                </div>
+            </div>
+            {% if product %}
+            <div class="row mb-3">
+                <div class="col-md-3"><strong>관련 상품</strong></div>
+                <div class="col-md-9">
+                    <a href="{{ url_for('admin.product_detail', product_id=product.id) }}">
+                        {{ product.title }}
+                    </a>
+                    <a href="{{ url_for('product.view_product', product_id=product.id) }}" target="_blank" class="ms-2 btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> 상품 보기
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- 신고 내용 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">신고 내용</h5>
+        </div>
+        <div class="card-body">
+            <div class="p-3 bg-light rounded">
+                {{ report.reason|nl2br|safe }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 신고 처리 폼 -->
+    {% if report.status == 'pending' %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">신고 처리</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('admin.report_detail', report_id=report.id) }}">
+                <div class="mb-3">
+                    <label class="form-label">처리 방법</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="action" value="review" class="btn btn-success">
+                            <i class="bi bi-check-circle-fill"></i> 검토 완료 처리
+                        </button>
+                        <button type="submit" name="action" value="dismiss" class="btn btn-danger">
+                            <i class="bi bi-x-circle-fill"></i> 신고 기각
+                        </button>
+                    </div>
+                    <div class="form-text mt-2">
+                        <ul>
+                            <li><strong>검토 완료</strong>: 신고 내용이 타당하며, 관련 상품이 있는 경우 해당 상품이 숨김 처리됩니다.</li>
+                            <li><strong>신고 기각</strong>: 신고 내용이 타당하지 않아 조치가 필요하지 않음을 의미합니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

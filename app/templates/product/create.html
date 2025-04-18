@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}상품 등록 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">상품 등록</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">제목 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required maxlength="100">
+                            <div class="form-text text-end"><span id="titleCount">0</span>/100</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">카테고리 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" selected disabled>카테고리 선택</option>
+                                <option value="digital">디지털/가전</option>
+                                <option value="furniture">가구/인테리어</option>
+                                <option value="fashion">의류/패션/잡화</option>
+                                <option value="book">도서/티켓/음반</option>
+                                <option value="beauty">뷰티/미용</option>
+                                <option value="sports">스포츠/레저</option>
+                                <option value="game">게임/취미</option>
+                                <option value="child">유아동</option>
+                                <option value="pet">반려동물용품</option>
+                                <option value="food">식품</option>
+                                <option value="plant">식물</option>
+                                <option value="other">기타 중고물품</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">가격 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="price" name="price" required min="0" max="10000000">
+                                <span class="input-group-text">원</span>
+                            </div>
+                            <div class="form-text">0원 ~ 10,000,000원까지 입력 가능</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">거래 지역 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="location" name="location" required maxlength="50" placeholder="예: 서울시 강남구">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">상품 설명 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required maxlength="2000"></textarea>
+                            <div class="form-text text-end"><span id="descriptionCount">0</span>/2000</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">상품 이미지 <span class="text-danger">*</span> (최대 5장)</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*" required>
+                            </div>
+                            <div class="form-text">JPG, PNG, GIF 파일만 가능, 각 파일 최대 5MB</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div id="imagePreview" class="row"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">상품 등록</button>
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 제목 글자수 카운트
+    const titleInput = document.getElementById('title');
+    const titleCount = document.getElementById('titleCount');
+    
+    titleInput.addEventListener('input', function() {
+        titleCount.textContent = this.value.length;
+    });
+    
+    // 상품 설명 글자수 카운트
+    const descriptionInput = document.getElementById('description');
+    const descriptionCount = document.getElementById('descriptionCount');
+    
+    descriptionInput.addEventListener('input', function() {
+        descriptionCount.textContent = this.value.length;
+    });
+    
+    // 이미지 미리보기
+    const imageInput = document.getElementById('images');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function() {
+        imagePreview.innerHTML = '';
+        
+        if (this.files.length > 5) {
+            alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
+            this.value = '';
+            return;
+        }
+        
+        for (const file of this.files) {
+            if (!file.type.match('image.*')) {
+                continue;
+            }
+            
+            const reader = new FileReader();
+            const col = document.createElement('div');
+            col.className = 'col-4 col-md-3 mb-2';
+            
+            reader.onload = function(e) {
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" alt="미리보기" style="height: 150px; object-fit: cover;">
+                    </div>
+                `;
+                imagePreview.appendChild(col);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // 폼 제출 전 검증
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        const images = document.getElementById('images');
+        
+        if (images.files.length === 0) {
+            e.preventDefault();
+            alert('상품 이미지를 한 장 이상 업로드해주세요.');
+            return;
+        }
+        
+        if (images.files.length > 5) {
+            e.preventDefault();
+            alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
+            return;
+        }
+    });
+</script>
+{% endblock %} 

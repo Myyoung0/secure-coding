@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}상품 수정 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">상품 수정</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">제목 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required maxlength="100" value="{{ product.title }}">
+                            <div class="form-text text-end"><span id="titleCount">{{ product.title|length }}</span>/100</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">카테고리 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" disabled>카테고리 선택</option>
+                                <option value="digital" {% if product.category == 'digital' %}selected{% endif %}>디지털/가전</option>
+                                <option value="furniture" {% if product.category == 'furniture' %}selected{% endif %}>가구/인테리어</option>
+                                <option value="fashion" {% if product.category == 'fashion' %}selected{% endif %}>의류/패션/잡화</option>
+                                <option value="book" {% if product.category == 'book' %}selected{% endif %}>도서/티켓/음반</option>
+                                <option value="beauty" {% if product.category == 'beauty' %}selected{% endif %}>뷰티/미용</option>
+                                <option value="sports" {% if product.category == 'sports' %}selected{% endif %}>스포츠/레저</option>
+                                <option value="game" {% if product.category == 'game' %}selected{% endif %}>게임/취미</option>
+                                <option value="child" {% if product.category == 'child' %}selected{% endif %}>유아동</option>
+                                <option value="pet" {% if product.category == 'pet' %}selected{% endif %}>반려동물용품</option>
+                                <option value="food" {% if product.category == 'food' %}selected{% endif %}>식품</option>
+                                <option value="plant" {% if product.category == 'plant' %}selected{% endif %}>식물</option>
+                                <option value="other" {% if product.category == 'other' %}selected{% endif %}>기타 중고물품</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">가격 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="price" name="price" required min="0" max="10000000" value="{{ product.price }}">
+                                <span class="input-group-text">원</span>
+                            </div>
+                            <div class="form-text">0원 ~ 10,000,000원까지 입력 가능</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">거래 지역 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="location" name="location" required maxlength="50" value="{{ product.location }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">상품 설명 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required maxlength="2000">{{ product.description }}</textarea>
+                            <div class="form-text text-end"><span id="descriptionCount">{{ product.description|length }}</span>/2000</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">현재 이미지</label>
+                            <div class="row mb-3">
+                                {% for image in product.images %}
+                                <div class="col-4 col-md-3 mb-2">
+                                    <div class="card position-relative">
+                                        <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" class="card-img-top" alt="상품 이미지" style="height: 150px; object-fit: cover;">
+                                        <div class="position-absolute top-0 end-0">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="delete_image_{{ image.id }}" name="delete_images" value="{{ image.id }}">
+                                                <label class="form-check-label" for="delete_image_{{ image.id }}">
+                                                    <span class="badge bg-danger">삭제</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">새 이미지 추가 (최대 {{ 5 - product.images|length }}장)</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*" {% if product.images|length >= 5 %}disabled{% endif %}>
+                            </div>
+                            <div class="form-text">JPG, PNG, GIF 파일만 가능, 각 파일 최대 5MB</div>
+                            {% if product.images|length >= 5 %}
+                            <div class="alert alert-warning mt-2">
+                                이미 최대 이미지 수(5장)에 도달했습니다. 새 이미지를 추가하려면 기존 이미지를 삭제하세요.
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div id="imagePreview" class="row"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="status" class="form-label">상품 상태</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="available" {% if product.status == 'available' %}selected{% endif %}>판매중</option>
+                                <option value="reserved" {% if product.status == 'reserved' %}selected{% endif %}>예약중</option>
+                                <option value="sold" {% if product.status == 'sold' %}selected{% endif %}>판매완료</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">상품 정보 수정</button>
+                            <a href="{{ url_for('product.view', product_id=product.id) }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 제목 글자수 카운트
+    const titleInput = document.getElementById('title');
+    const titleCount = document.getElementById('titleCount');
+    
+    titleInput.addEventListener('input', function() {
+        titleCount.textContent = this.value.length;
+    });
+    
+    // 상품 설명 글자수 카운트
+    const descriptionInput = document.getElementById('description');
+    const descriptionCount = document.getElementById('descriptionCount');
+    
+    descriptionInput.addEventListener('input', function() {
+        descriptionCount.textContent = this.value.length;
+    });
+    
+    // 이미지 미리보기
+    const imageInput = document.getElementById('images');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    {% if product.images|length < 5 %}
+    imageInput.addEventListener('change', function() {
+        imagePreview.innerHTML = '';
+        
+        const currentImageCount = {{ product.images|length }};
+        const maxNewImages = 5 - currentImageCount;
+        
+        if (this.files.length > maxNewImages) {
+            alert(`이미지는 최대 ${maxNewImages}장까지만 추가할 수 있습니다.`);
+            this.value = '';
+            return;
+        }
+        
+        for (const file of this.files) {
+            if (!file.type.match('image.*')) {
+                continue;
+            }
+            
+            const reader = new FileReader();
+            const col = document.createElement('div');
+            col.className = 'col-4 col-md-3 mb-2';
+            
+            reader.onload = function(e) {
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" alt="미리보기" style="height: 150px; object-fit: cover;">
+                    </div>
+                `;
+                imagePreview.appendChild(col);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+    });
+    {% endif %}
+    
+    // 폼 제출 전 검증
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+        const currentImageCount = {{ product.images|length }};
+        const deleteImageCheckboxes = document.querySelectorAll('input[name="delete_images"]:checked').length;
+        const newImageCount = document.getElementById('images').files.length;
+        
+        const totalImagesAfterEdit = currentImageCount - deleteImageCheckboxes + newImageCount;
+        
+        if (totalImagesAfterEdit <= 0) {
+            e.preventDefault();
+            alert('상품 이미지는 최소 1장 이상 필요합니다.');
+            return;
+        }
+        
+        if (totalImagesAfterEdit > 5) {
+            e.preventDefault();
+            alert('상품 이미지는 최대 5장까지만 가능합니다.');
+            return;
+        }
+    });
+</script>
+{% endblock %} 

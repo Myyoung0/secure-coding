@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}홈 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="jumbotron py-5">
+    <h1 class="display-4">중고거래 플랫폼에 오신 것을 환영합니다!</h1>
+    <p class="lead">간편하고 안전한 거래 환경에서 원하는 상품을 구매하거나 판매해보세요.</p>
+    <hr class="my-4">
+    <div class="d-flex">
+        <a class="btn btn-primary me-2" href="{{ url_for('main.search') }}" role="button">상품 검색하기</a>
+        {% if current_user.is_authenticated %}
+        <a class="btn btn-success" href="{{ url_for('product.create_product') }}" role="button">상품 등록하기</a>
+        {% else %}
+        <a class="btn btn-outline-primary" href="{{ url_for('auth.register') }}" role="button">회원가입하기</a>
+        {% endif %}
+    </div>
+</div>
+
+<h2 class="mt-5 mb-4">최신 상품</h2>
+
+{% if products %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100">
+            {% if product.images.first() %}
+            <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" class="card-img-top" alt="{{ product.title }}">
+            {% else %}
+            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                <span class="text-muted">이미지 없음</span>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.title }}</h5>
+                <p class="card-text text-danger fw-bold">{{ product.price | format_number }}원</p>
+                <p class="card-text text-muted">{{ product.location }}</p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">자세히 보기</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    등록된 상품이 없습니다.
+</div>
+{% endif %}
+{% endblock %} 

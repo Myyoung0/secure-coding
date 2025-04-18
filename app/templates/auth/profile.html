@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}프로필 - {{ current_user.username }} - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">내 프로필</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if current_user.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" alt="{{ current_user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/default_profile.png') }}" alt="{{ current_user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                    <h4>{{ current_user.username }}</h4>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>회원 가입일:</strong>
+                    <p>{{ current_user.created_at|date_format }}</p>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+                        <i class="bi bi-pencil-square"></i> 프로필 수정
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">내 지갑</h4>
+            </div>
+            <div class="card-body">
+                <h3 class="text-primary mb-3">{{ current_user.wallet.balance|format_number }}원</h3>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('wallet.index') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-wallet2"></i> 내 지갑 관리
+                    </a>
+                    <a href="{{ url_for('wallet.charge') }}" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle"></i> 충전하기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">내 판매 상품</h3>
+            </div>
+            <div class="card-body">
+                {% if current_user.products %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for product in current_user.products %}
+                    <div class="col">
+                        <div class="card h-100">
+                            {% if product.images.first() %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.images.first().filename) }}" class="card-img-top" alt="{{ product.title }}" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <span class="text-muted">이미지 없음</span>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.title }}</h5>
+                                <p class="card-text text-primary">{{ product.price|format_number }}원</p>
+                                <p class="card-text">
+                                    <span class="badge {% if product.status == 'available' %}bg-primary{% elif product.status == 'reserved' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {% if product.status == 'available' %}판매중{% elif product.status == 'reserved' %}예약중{% else %}판매완료{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                <div class="btn-group w-100" role="group">
+                                    <a href="{{ url_for('product.view', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">보기</a>
+                                    <a href="{{ url_for('product.edit', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">등록한 상품이 없습니다.</p>
+                </div>
+                <div class="text-center">
+                    <a href="{{ url_for('product.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> 상품 등록하기
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">내 구매 내역</h3>
+            </div>
+            <div class="card-body">
+                {% if current_user.purchases %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>상품명</th>
+                                <th>가격</th>
+                                <th>판매자</th>
+                                <th>구매일</th>
+                                <th>상태</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for purchase in current_user.purchases %}
+                            <tr>
+                                <td>{{ purchase.product.title }}</td>
+                                <td>{{ purchase.price|format_number }}원</td>
+                                <td>{{ purchase.seller.username }}</td>
+                                <td>{{ purchase.created_at|date_format }}</td>
+                                <td>
+                                    <span class="badge {% if purchase.status == 'completed' %}bg-success{% elif purchase.status == 'processing' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {% if purchase.status == 'completed' %}완료{% elif purchase.status == 'processing' %}진행중{% else %}취소{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('product.view', product_id=purchase.product_id) }}" class="btn btn-sm btn-outline-primary">상세</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">구매 내역이 없습니다.</p>
+                </div>
+                <div class="text-center">
+                    <a href="{{ url_for('main.search') }}" class="btn btn-primary">
+                        <i class="bi bi-search"></i> 상품 검색하기
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_APP=app/__init__.py
+      - FLASK_ENV=development
+      - SECRET_KEY=dev_secret_key
+    restart: always 

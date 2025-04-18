@@ -1,0 +1,113 @@
+/* 전체 스타일 */
+body {
+    font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    padding-bottom: 70px;
+}
+
+/* 푸터 스타일 */
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+/* 상품 카드 스타일 */
+.card {
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.card-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 캐러셀 스타일 */
+.carousel-item img {
+    max-height: 500px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}
+
+/* 상품 설명 스타일 */
+.product-description {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+/* 채팅 메시지 스타일 */
+.chat-message {
+    border-radius: 20px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    max-width: 70%;
+}
+
+.chat-message-mine {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.chat-message-other {
+    background-color: #f1f1f1;
+    margin-right: auto;
+}
+
+.chat-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+/* 리뷰 별점 스타일 */
+.rating {
+    display: inline-block;
+    unicode-bidi: bidi-override;
+    color: #ccc;
+    font-size: 1.5rem;
+    height: 1.5rem;
+    width: auto;
+    margin: 0;
+    position: relative;
+    padding: 0;
+}
+
+.rating-upper {
+    color: #ffc107;
+    padding: 0;
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+}
+
+.rating-lower {
+    padding: 0;
+    display: flex;
+    z-index: 0;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .card-img-top {
+        height: 150px;
+    }
+    
+    .carousel-item img {
+        max-height: 300px;
+    }
+} 

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}상품 {{ product.title }} - 관리자 페이지{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>상품 상세 정보</h1>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 목록으로
+        </a>
+    </div>
+    
+    <!-- 상품 정보 -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">상품 이미지</h5>
+                </div>
+                <div class="card-body">
+                    {% if product.images.first() %}
+                    <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" alt="{{ product.title }}" class="img-fluid">
+                    {% else %}
+                    <div class="text-center p-5 bg-light">
+                        <i class="bi bi-image" style="font-size: 5rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">이미지 없음</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">기본 정보</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>ID</strong></div>
+                        <div class="col-md-9">{{ product.id }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>상품명</strong></div>
+                        <div class="col-md-9">{{ product.title }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>가격</strong></div>
+                        <div class="col-md-9">{{ product.price|format_number }}원</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>카테고리</strong></div>
+                        <div class="col-md-9">{{ product.category }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>지역</strong></div>
+                        <div class="col-md-9">{{ product.location }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>판매자</strong></div>
+                        <div class="col-md-9">
+                            <a href="{{ url_for('admin.user_detail', user_id=product.seller_id) }}">
+                                {{ product.seller.username }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>상태</strong></div>
+                        <div class="col-md-9">
+                            {% if product.status == 'active' %}
+                            <span class="badge bg-success">판매중</span>
+                            {% elif product.status == 'sold' %}
+                            <span class="badge bg-secondary">판매완료</span>
+                            {% else %}
+                            <span class="badge bg-danger">숨김</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>등록일</strong></div>
+                        <div class="col-md-9">{{ product.created_at|format_datetime }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3"><strong>수정일</strong></div>
+                        <div class="col-md-9">{{ product.updated_at|format_datetime }}</div>
+                    </div>
+                    
+                    <!-- 상태 변경 -->
+                    <form method="post" action="{{ url_for('admin.product_detail', product_id=product.id) }}" class="mt-4">
+                        <div class="d-flex gap-2">
+                            {% if product.status != 'active' %}
+                            <button type="submit" name="action" value="activate" class="btn btn-success">
+                                <i class="bi bi-eye-fill"></i> 상품 활성화
+                            </button>
+                            {% endif %}
+                            
+                            {% if product.status != 'hidden' %}
+                            <button type="submit" name="action" value="hide" class="btn btn-danger">
+                                <i class="bi bi-eye-slash-fill"></i> 상품 숨김
+                            </button>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('product.view_product', product_id=product.id) }}" target="_blank" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-up-right"></i> 상품 보기
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 상품 설명 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">상품 설명</h5>
+        </div>
+        <div class="card-body">
+            <div class="p-3 bg-light rounded">
+                {{ product.description|nl2br|safe }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 신고 내역 -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">신고 내역</h5>
+            <span class="badge bg-primary">{{ reports|length }}건</span>
+        </div>
+        <div class="card-body p-0">
+            {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>신고자</th>
+                            <th>신고 사유</th>
+                            <th>상태</th>
+                            <th>날짜</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td>{{ report.reporter.username }}</td>
+                            <td>{{ report.reason[:30] }}{% if report.reason|length > 30 %}...{% endif %}</td>
+                            <td>
+                                {% if report.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">대기중</span>
+                                {% elif report.status == 'reviewed' %}
+                                <span class="badge bg-success">검토완료</span>
+                                {% else %}
+                                <span class="badge bg-danger">기각됨</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.created_at|format_datetime }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.report_detail', report_id=report.id) }}" class="btn btn-sm btn-outline-primary">상세</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted">
+                신고 내역이 없습니다.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

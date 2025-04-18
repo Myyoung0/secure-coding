@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}신고 관리 - 관리자 페이지{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">신고 관리</h1>
+    
+    <!-- 필터 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group w-100">
+                <a href="{{ url_for('admin.reports', status='pending') }}" class="btn {% if status == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    대기중
+                </a>
+                <a href="{{ url_for('admin.reports', status='reviewed') }}" class="btn {% if status == 'reviewed' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    검토완료
+                </a>
+                <a href="{{ url_for('admin.reports', status='dismissed') }}" class="btn {% if status == 'dismissed' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    기각됨
+                </a>
+                <a href="{{ url_for('admin.reports') }}" class="btn {% if not status %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    전체
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 신고 목록 -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">신고 목록</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>신고자</th>
+                            <th>대상자</th>
+                            <th>관련 상품</th>
+                            <th>상태</th>
+                            <th>날짜</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports.items %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td>{{ report.reporter.username }}</td>
+                            <td>{{ report.reported.username }}</td>
+                            <td>
+                                {% if report.product_id %}
+                                <a href="{{ url_for('product.view_product', product_id=report.product_id) }}">
+                                    보기
+                                </a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if report.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">대기중</span>
+                                {% elif report.status == 'reviewed' %}
+                                <span class="badge bg-success">검토완료</span>
+                                {% else %}
+                                <span class="badge bg-danger">기각됨</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ report.created_at|format_datetime }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.report_detail', report_id=report.id) }}" class="btn btn-sm btn-outline-primary">상세</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">신고 내역이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        {% if reports.pages > 1 %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center m-0">
+                    {% for page_num in reports.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == reports.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.reports', page=page_num, status=status) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

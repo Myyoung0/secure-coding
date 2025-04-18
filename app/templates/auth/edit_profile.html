@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}프로필 수정 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">프로필 수정</h2>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('auth.edit_profile') }}" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">이름</label>
+                        {{ form.username(class="form-control", id="username") }}
+                        {% for error in form.username.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="profile_image" class="form-label">프로필 이미지</label>
+                        {{ form.profile_image(class="form-control", id="profile_image") }}
+                        {% for error in form.profile_image.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">JPG, PNG 또는 GIF 이미지만 허용됩니다.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div id="imagePreview" class="text-center mt-3">
+                            {% if current_user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" alt="현재 프로필 이미지" class="img-thumbnail" style="max-height: 200px;">
+                            <p class="text-muted">현재 프로필 이미지</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary">취소</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 이미지 미리보기 기능
+    const profileImageInput = document.getElementById('profile_image');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    profileImageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `
+                    <img src="${e.target.result}" alt="프로필 미리보기" class="img-thumbnail" style="max-height: 200px;">
+                    <p class="text-muted">새 프로필 이미지 미리보기</p>
+                `;
+            };
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+</script>
+{% endblock %} 

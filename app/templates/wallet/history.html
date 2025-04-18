@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}거래 내역 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">거래 내역</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">잔액 정보</h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h3 class="text-primary mb-0">{{ current_user.wallet.balance|format_number }}원</h3>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <a href="{{ url_for('wallet.charge') }}" class="btn btn-primary me-2">충전하기</a>
+                    <a href="{{ url_for('wallet.transfer') }}" class="btn btn-outline-primary">송금하기</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 필터 영역 -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group w-100">
+                <a href="{{ url_for('wallet.history', type='all') }}" class="btn {% if current_type == 'all' or not current_type %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    전체 거래
+                </a>
+                <a href="{{ url_for('wallet.history', type='sent') }}" class="btn {% if current_type == 'sent' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    보낸 거래
+                </a>
+                <a href="{{ url_for('wallet.history', type='received') }}" class="btn {% if current_type == 'received' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    받은 거래
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 거래 내역 목록 -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">거래 내역</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>날짜</th>
+                            <th>유형</th>
+                            <th>금액</th>
+                            <th>상세</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transfer in transfers.items %}
+                        <tr>
+                            <td>{{ transfer.created_at|format_datetime }}</td>
+                            <td>
+                                {% if transfer.sender_id == current_user.wallet.id and transfer.receiver_id == current_user.wallet.id %}
+                                    <span class="badge bg-success">충전</span>
+                                {% elif transfer.sender_id == current_user.wallet.id %}
+                                    <span class="badge bg-danger">송금</span>
+                                {% else %}
+                                    <span class="badge bg-primary">입금</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transfer.sender_id == current_user.wallet.id and transfer.receiver_id != current_user.wallet.id %}
+                                    <span class="text-danger">-{{ transfer.amount|format_number }}원</span>
+                                {% else %}
+                                    <span class="text-success">+{{ transfer.amount|format_number }}원</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transfer.product_id %}
+                                    <a href="{{ url_for('product.view_product', product_id=transfer.product_id) }}">
+                                        상품 구매
+                                    </a>
+                                {% elif transfer.sender_id == current_user.wallet.id and transfer.receiver_id == current_user.wallet.id %}
+                                    충전
+                                {% elif transfer.sender_id == current_user.wallet.id %}
+                                    {% if transfer.receiver %}
+                                    {{ transfer.receiver.user.username }}에게 송금
+                                    {% else %}
+                                    송금
+                                    {% endif %}
+                                {% else %}
+                                    {% if transfer.sender %}
+                                    {{ transfer.sender.user.username }}에게서 수신
+                                    {% else %}
+                                    입금
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">거래 내역이 없습니다.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        {% if transfers.pages > 1 %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center m-0">
+                    {% for page_num in transfers.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == transfers.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('wallet.history', page=page_num, type=current_type) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

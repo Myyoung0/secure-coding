@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}충전하기 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">충전하기</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle-fill me-2" style="font-size: 1.5rem;"></i>
+                            <div>
+                                <p class="mb-0">현재 잔액: <strong>{{ current_user.wallet.balance|format_number }}원</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" action="{{ url_for('wallet.charge') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">충전액</label>
+                            <div class="input-group">
+                                {{ form.amount(class="form-control", id="amount", placeholder="충전할 금액") }}
+                                <span class="input-group-text">원</span>
+                            </div>
+                            {% for error in form.amount.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">결제 수단</label>
+                            {{ form.payment_method(class="form-select", id="payment_method") }}
+                            {% for error in form.payment_method.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary", type="submit") }}
+                            <a href="{{ url_for('wallet.index') }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">충전 안내</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>최소 충전 금액은 1,000원입니다.</li>
+                        <li>최대 충전 금액은 1,000,000원입니다.</li>
+                        <li>충전 시 수수료는 없습니다.</li>
+                        <li>충전 후 즉시 잔액에 반영됩니다.</li>
+                        <li>충전한 금액은 환불이 불가능합니다.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

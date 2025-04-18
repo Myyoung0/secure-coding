@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}검색 - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                검색 필터
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('main.search') }}">
+                    <div class="mb-3">
+                        <label for="q" class="form-label">검색어</label>
+                        <input type="text" class="form-control" id="q" name="q" value="{{ request.args.get('q', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">카테고리</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">모든 카테고리</option>
+                            <option value="electronics" {% if request.args.get('category') == 'electronics' %}selected{% endif %}>전자제품</option>
+                            <option value="fashion" {% if request.args.get('category') == 'fashion' %}selected{% endif %}>패션/의류</option>
+                            <option value="books" {% if request.args.get('category') == 'books' %}selected{% endif %}>도서</option>
+                            <option value="sports" {% if request.args.get('category') == 'sports' %}selected{% endif %}>스포츠/레저</option>
+                            <option value="furniture" {% if request.args.get('category') == 'furniture' %}selected{% endif %}>가구/인테리어</option>
+                            <option value="beauty" {% if request.args.get('category') == 'beauty' %}selected{% endif %}>뷰티/미용</option>
+                            <option value="toys" {% if request.args.get('category') == 'toys' %}selected{% endif %}>장난감/취미</option>
+                            <option value="etc" {% if request.args.get('category') == 'etc' %}selected{% endif %}>기타</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">지역</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ request.args.get('location', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="min_price" class="form-label">최소 가격</label>
+                        <input type="number" class="form-control" id="min_price" name="min_price" value="{{ request.args.get('min_price', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="max_price" class="form-label">최대 가격</label>
+                        <input type="number" class="form-control" id="max_price" name="max_price" value="{{ request.args.get('max_price', '') }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">검색</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <h2>
+            {% if query %}
+            "{{ query }}" 검색 결과
+            {% else %}
+            모든 상품
+            {% endif %}
+        </h2>
+        
+        {% if products.items %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-3">
+            {% for product in products.items %}
+            <div class="col">
+                <div class="card h-100">
+                    {% if product.images.first() %}
+                    <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" class="card-img-top" alt="{{ product.title }}">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <span class="text-muted">이미지 없음</span>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.title }}</h5>
+                        <p class="card-text text-danger fw-bold">{{ product.price | format_number }}원</p>
+                        <p class="card-text text-muted">{{ product.location }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">판매자: {{ product.seller.username }}</small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">자세히 보기</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if products.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.search', page=products.prev_num, q=request.args.get('q', ''), category=request.args.get('category', ''), location=request.args.get('location', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', '')) }}">이전</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">이전</a>
+                </li>
+                {% endif %}
+
+                {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == products.page %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.search', page=page_num, q=request.args.get('q', ''), category=request.args.get('category', ''), location=request.args.get('location', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', '')) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.search', page=products.next_num, q=request.args.get('q', ''), category=request.args.get('category', ''), location=request.args.get('location', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', '')) }}">다음</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">다음</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% else %}
+        <div class="alert alert-info mt-3">
+            검색 결과가 없습니다.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} - 중고거래 플랫폼{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- 상품 이미지 섹션 -->
+        <div class="col-md-6 mb-4">
+            {% if product.images %}
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        {% for image in product.images %}
+                            <button type="button" data-bs-target="#productCarousel" data-bs-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active"{% endif %} aria-label="Slide {{ loop.index }}"></button>
+                        {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                        {% for image in product.images %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ url_for('static', filename='uploads/' + image.image_path) }}" class="d-block w-100" alt="상품 이미지" style="height: 400px; object-fit: contain;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if product.images.count() > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">이전</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">다음</span>
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="row mt-2">
+                    {% for image in product.images %}
+                        <div class="col-3">
+                            <img src="{{ url_for('static', filename='uploads/' + image.image_path) }}" class="img-thumbnail" alt="썸네일" data-bs-target="#productCarousel" data-bs-slide-to="{{ loop.index0 }}" style="cursor: pointer; height: 80px; object-fit: cover;">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-image" style="font-size: 5rem; color: #ccc;"></i>
+                        <p class="mt-3">등록된 이미지가 없습니다</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 상품 정보 섹션 -->
+        <div class="col-md-6">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-secondary">{{ product.category }}</span>
+                <div>
+                    {% if current_user.id == product.seller_id %}
+                        <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">수정</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">삭제</button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h1 class="mb-3">{{ product.title }}</h1>
+            
+            <div class="mb-3">
+                <h3 class="text-primary mb-0">{{ product.price|format_price }}원</h3>
+            </div>
+            
+            <div class="mb-3">
+                <div class="d-flex mb-2">
+                    <div style="width: 100px;"><strong>판매자</strong></div>
+                    <div>
+                        <a href="{{ url_for('user.profile', user_id=product.seller_id) }}" class="text-decoration-none">
+                            {{ product.seller.username }}
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-2">
+                    <div style="width: 100px;"><strong>거래지역</strong></div>
+                    <div>{{ product.location }}</div>
+                </div>
+                
+                <div class="d-flex mb-2">
+                    <div style="width: 100px;"><strong>상품상태</strong></div>
+                    <div>
+                        {% if product.status == 'available' %}
+                            <span class="badge bg-success">판매중</span>
+                        {% elif product.status == 'reserved' %}
+                            <span class="badge bg-warning text-dark">예약중</span>
+                        {% elif product.status == 'sold' %}
+                            <span class="badge bg-secondary">판매완료</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-2">
+                    <div style="width: 100px;"><strong>등록일</strong></div>
+                    <div>{{ product.created_at|format_datetime }}</div>
+                </div>
+                
+                <div class="d-flex mb-2">
+                    <div style="width: 100px;"><strong>조회수</strong></div>
+                    <div>{{ product.view_count }}</div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+                {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+                    {% if product.status == 'available' %}
+                        <button class="btn btn-lg btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#purchaseModal">
+                            구매하기
+                        </button>
+                        <button class="btn btn-lg btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            채팅하기
+                        </button>
+                    {% elif product.status == 'reserved' %}
+                        <button class="btn btn-lg btn-warning" type="button" disabled>
+                            예약중
+                        </button>
+                        <button class="btn btn-lg btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#messageModal">
+                            채팅하기
+                        </button>
+                    {% else %}
+                        <button class="btn btn-lg btn-secondary" type="button" disabled>
+                            판매완료
+                        </button>
+                    {% endif %}
+                {% elif not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-lg btn-outline-primary">
+                        로그인 후 구매 가능합니다
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 상품 설명 섹션 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">상품 설명</h3>
+                </div>
+                <div class="card-body">
+                    <div class="product-description">
+                        {{ product.description|nl2br }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 판매자의 다른 상품 섹션 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>판매자의 다른 상품</h3>
+            {% if seller_products %}
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5">
+                    {% for item in seller_products %}
+                        <div class="col mb-4">
+                            <div class="card h-100">
+                                <a href="{{ url_for('product.view', product_id=item.id) }}" class="text-decoration-none">
+                                    {% if item.thumbnail %}
+                                        <img src="{{ url_for('static', filename='uploads/' + item.thumbnail) }}" class="card-img-top" alt="{{ item.title }}" style="height: 150px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="text-center py-5 bg-light">
+                                            <i class="bi bi-image" style="font-size: 2rem; color: #aaa;"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title text-truncate">{{ item.title }}</h5>
+                                        <p class="card-text text-primary">{{ item.price|format_price }}원</p>
+                                        <p class="card-text"><small class="text-muted">{{ item.location }}</small></p>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">판매자의 다른 상품이 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 구매 모달 -->
+<div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="purchaseModalLabel">상품 구매</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ product.title }}을(를) 구매하시겠습니까?</p>
+                <p>판매가: <strong>{{ product.price|format_price }}원</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form action="{{ url_for('product.purchase', product_id=product.id) }}" method="post">
+                    <button type="submit" class="btn btn-primary">구매하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 메시지 모달 -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">판매자에게 메시지 보내기</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <form action="{{ url_for('message.send', recipient_id=product.seller_id) }}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <div class="mb-3">
+                        <label for="message" class="form-label">메시지</label>
+                        <textarea class="form-control" id="message" name="content" rows="3" required placeholder="메시지를 입력하세요"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">보내기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+{% if current_user.id == product.seller_id %}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">상품 삭제 확인</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body">
+                <p>정말로 이 상품을 삭제하시겠습니까?</p>
+                <p class="text-danger">삭제 후에는 복구할 수 없습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form action="{{ url_for('product.delete', product_id=product.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">삭제</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 썸네일 클릭 시 해당 이미지로 캐러셀 이동
+    document.querySelectorAll('.img-thumbnail').forEach(function(img) {
+        img.addEventListener('click', function() {
+            const slideIndex = this.getAttribute('data-bs-slide-to');
+            const carousel = new bootstrap.Carousel(document.getElementById('productCarousel'));
+            carousel.to(parseInt(slideIndex));
+        });
+    });
+</script>
+{% endblock %} 
