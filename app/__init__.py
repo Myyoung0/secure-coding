@@ -18,6 +18,7 @@ login_manager.login_message = '이 페이지에 접근하려면 로그인이 필
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.debug = True
     
     # 폴더 생성
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -27,6 +28,10 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     CORS(app)
+    
+    # CLI 명령어 등록
+    from app import cli
+    cli.init_app(app)
     
     # Jinja2 필터 등록
     @app.template_filter('format_number')

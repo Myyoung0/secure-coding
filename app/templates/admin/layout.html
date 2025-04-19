@@ -1,0 +1,14 @@
+<div class="list-group mb-4">
+    <a href="{{ url_for('admin.index') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.index' %}active{% endif %}">
+        <i class="bi bi-speedometer2 me-2"></i> 대시보드
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.users' %}active{% endif %}">
+        <i class="bi bi-people me-2"></i> 사용자 관리
+    </a>
+    <a href="{{ url_for('admin.products') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'admin.products' %}active{% endif %}">
+        <i class="bi bi-box me-2"></i> 상품 관리
+    </a>
+    <a href="{{ url_for('report.admin_reports') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'report.admin_reports' %}active{% endif %}">
+        <i class="bi bi-flag me-2"></i> 신고 관리
+    </a>
+</div> 

@@ -19,8 +19,6 @@ class User(UserMixin, db.Model):
     # 관계
     products = db.relationship('Product', backref='seller', lazy='dynamic')
     wallet = db.relationship('Wallet', backref='user', uselist=False)
-    reports_filed = db.relationship('Report', foreign_keys='Report.reporter_id', backref='reporter', lazy='dynamic')
-    reports_received = db.relationship('Report', foreign_keys='Report.reported_id', backref='reported', lazy='dynamic')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -122,11 +120,15 @@ class Report(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     reporter_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    reported_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    reported_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
     reason = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, reviewed, dismissed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    reporter = db.relationship('User', foreign_keys=[reporter_id], backref='reported_reports')
+    reported = db.relationship('User', foreign_keys=[reported_id], backref='received_reports')
+    product = db.relationship('Product', backref='reports')
     
     def __repr__(self):
         return f'<Report {self.id}>'

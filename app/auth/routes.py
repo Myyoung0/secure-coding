@@ -67,7 +67,13 @@ def logout():
 @bp.route('/profile', methods=['GET'])
 @login_required
 def profile():
-    return render_template('auth/profile.html', title='내 프로필')
+    return render_template('auth/profile.html', title='내 프로필', user=current_user)
+
+@bp.route('/profile/<int:user_id>', methods=['GET'])
+@login_required
+def view_profile(user_id):
+    user = User.query.get_or_404(user_id)
+    return render_template('auth/profile.html', title=f'{user.username}의 프로필', user=user)
 
 @bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required

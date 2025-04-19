@@ -1,38 +1,51 @@
 {% extends 'base.html' %}
 
-{% block title %}프로필 - {{ current_user.username }} - 중고거래 플랫폼{% endblock %}
+{% block title %}프로필 - {{ user.username }} - 중고거래 플랫폼{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header">
-                <h3 class="mb-0">내 프로필</h3>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">사용자 정보</h5>
+                {% if current_user.is_authenticated and current_user.id != user.id %}
+                <div>
+                    <a href="{{ url_for('chat.create_private_chat', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-chat-dots"></i> 채팅하기
+                    </a>
+                    <a href="{{ url_for('report.report_user', user_id=user.id) }}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-flag-fill"></i> 신고하기
+                    </a>
+                </div>
+                {% endif %}
             </div>
             <div class="card-body">
                 <div class="text-center mb-4">
-                    {% if current_user.profile_image %}
-                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" alt="{{ current_user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% if user.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" alt="{{ user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                     {% else %}
-                    <img src="{{ url_for('static', filename='images/default_profile.png') }}" alt="{{ current_user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    <img src="{{ url_for('static', filename='images/default_profile.png') }}" alt="{{ user.username }}" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                     {% endif %}
-                    <h4>{{ current_user.username }}</h4>
-                    <p class="text-muted">{{ current_user.email }}</p>
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
                 </div>
                 
                 <div class="mb-3">
                     <strong>회원 가입일:</strong>
-                    <p>{{ current_user.created_at|date_format }}</p>
+                    <p>{{ user.created_at|date_format }}</p>
                 </div>
                 
+                {% if current_user.id == user.id %}
                 <div class="d-grid gap-2">
                     <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
                         <i class="bi bi-pencil-square"></i> 프로필 수정
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
         
+        {% if current_user.id == user.id %}
         <div class="card mb-4">
             <div class="card-header">
                 <h4 class="mb-0">내 지갑</h4>
@@ -49,17 +62,18 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
     
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h3 class="mb-0">내 판매 상품</h3>
+                <h3 class="mb-0">{% if current_user.id == user.id %}내{% else %}{{ user.username }}님의{% endif %} 판매 상품</h3>
             </div>
             <div class="card-body">
-                {% if current_user.products %}
+                {% if user.products %}
                 <div class="row row-cols-1 row-cols-md-2 g-4">
-                    {% for product in current_user.products %}
+                    {% for product in user.products %}
                     <div class="col">
                         <div class="card h-100">
                             {% if product.images.first() %}
@@ -73,15 +87,17 @@
                                 <h5 class="card-title">{{ product.title }}</h5>
                                 <p class="card-text text-primary">{{ product.price|format_number }}원</p>
                                 <p class="card-text">
-                                    <span class="badge {% if product.status == 'available' %}bg-primary{% elif product.status == 'reserved' %}bg-warning{% else %}bg-secondary{% endif %}">
-                                        {% if product.status == 'available' %}판매중{% elif product.status == 'reserved' %}예약중{% else %}판매완료{% endif %}
+                                    <span class="badge {% if product.status == 'active' %}bg-success{% elif product.status == 'reserved' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                        {% if product.status == 'active' %}판매중{% elif product.status == 'reserved' %}거래중{% else %}판매완료{% endif %}
                                     </span>
                                 </p>
                             </div>
                             <div class="card-footer">
                                 <div class="btn-group w-100" role="group">
                                     <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">보기</a>
+                                    {% if current_user.id == user.id %}
                                     <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -90,17 +106,20 @@
                 </div>
                 {% else %}
                 <div class="alert alert-info">
-                    <p class="mb-0">등록한 상품이 없습니다.</p>
+                    <p class="mb-0">{% if current_user.id == user.id %}등록한{% else %}{{ user.username }}님이 등록한{% endif %} 상품이 없습니다.</p>
                 </div>
+                {% if current_user.id == user.id %}
                 <div class="text-center">
                     <a href="{{ url_for('product.create_product') }}" class="btn btn-primary">
                         <i class="bi bi-plus-lg"></i> 상품 등록하기
                     </a>
                 </div>
                 {% endif %}
+                {% endif %}
             </div>
         </div>
         
+        {% if current_user.id == user.id %}
         <div class="card">
             <div class="card-header">
                 <h3 class="mb-0">내 구매 내역</h3>
@@ -151,6 +170,7 @@
                 {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %} 

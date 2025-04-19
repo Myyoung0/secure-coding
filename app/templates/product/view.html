@@ -58,6 +58,10 @@
                         <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">수정</a>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">삭제</button>
                         <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#statusModal">상태 변경</button>
+                    {% elif current_user.is_authenticated %}
+                        <a href="{{ url_for('report.report_product', product_id=product.id) }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-flag-fill"></i> 신고
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -205,13 +209,16 @@
                     <p class="mb-0 text-muted">{{ product.location }}</p>
                 </div>
             </div>
-            {% if current_user.is_authenticated and current_user.id != product.seller_id %}
-            <div class="mt-3 d-grid">
-                <a href="{{ url_for('chat.create_private_chat', user_id=product.seller_id) }}" class="btn btn-outline-primary">
+            <div class="mt-3 d-flex gap-2">
+                {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+                <a href="{{ url_for('chat.create_private_chat', user_id=product.seller_id) }}" class="btn btn-outline-primary flex-grow-1">
                     <i class="bi bi-chat-dots"></i> 판매자와 채팅하기
                 </a>
+                <a href="{{ url_for('report.report_user', user_id=product.seller_id) }}" class="btn btn-outline-danger">
+                    <i class="bi bi-flag-fill"></i> 신고
+                </a>
+                {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
 </div>

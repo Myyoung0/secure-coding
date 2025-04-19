@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.title }} 상품 신고{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">상품 신고</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex mb-3">
+                            {% if product.images.first() %}
+                                <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" alt="{{ product.title }}" class="me-3" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center me-3" style="width: 100px; height: 100px;">
+                                    <i class="bi bi-image text-secondary" style="font-size: 2rem;"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h5 class="mb-1">{{ product.title }}</h5>
+                                <p class="text-primary mb-1">{{ product.price|format_price }}원</p>
+                                <p class="text-muted mb-0">판매자: {{ product.seller.username }}</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            부적절한 신고는 서비스 이용 제한이나 계정 정지의 사유가 될 수 있습니다.
+                        </div>
+                    </div>
+                    
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.reason.label(class="form-label") }}
+                            {{ form.reason(class="form-control", rows=5, placeholder="신고 사유를 자세히 작성해주세요. (최소 10자 이상)") }}
+                            {% if form.reason.errors %}
+                                <div class="text-danger">
+                                {% for error in form.reason.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-danger") }}
+                            <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-outline-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
