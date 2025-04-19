@@ -164,6 +164,54 @@ class Message(db.Model):
     def __repr__(self):
         return f'<Message {self.id} - From: {self.sender_id} To: {self.recipient_id}>'
 
+# 채팅방 모델
+class ChatRoom(db.Model):
+    __tablename__ = 'chat_rooms'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=True)  # 전체 채팅방일 경우 이름 지정 가능
+    type = db.Column(db.String(20), nullable=False)  # 'private' (1대1) 또는 'public' (전체)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 관계
+    messages = db.relationship('ChatMessage', backref='chat_room', lazy='dynamic', cascade='all, delete-orphan')
+    participants = db.relationship('ChatParticipant', backref='chat_room', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<ChatRoom {self.id} - {self.type}>'
+
+# 채팅 참가자 모델 (다대다 관계를 위한 중간 테이블)
+class ChatParticipant(db.Model):
+    __tablename__ = 'chat_participants'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    chat_room_id = db.Column(db.Integer, db.ForeignKey('chat_rooms.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_read_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 관계
+    user = db.relationship('User', backref='chat_participations')
+    
+    def __repr__(self):
+        return f'<ChatParticipant - User: {self.user_id}, Room: {self.chat_room_id}>'
+
+# 채팅 메시지 모델
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    chat_room_id = db.Column(db.Integer, db.ForeignKey('chat_rooms.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # 관계
+    sender = db.relationship('User', backref='chat_messages')
+    
+    def __repr__(self):
+        return f'<ChatMessage {self.id} - From: {self.sender_id}>'
+
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id)) 

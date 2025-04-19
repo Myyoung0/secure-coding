@@ -184,6 +184,35 @@
             {% endif %}
         </div>
     </div>
+
+    <!-- 판매자 정보 -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">판매자 정보</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                {% if product.seller.profile_image %}
+                <img src="{{ url_for('static', filename='uploads/' + product.seller.profile_image) }}" alt="{{ product.seller.username }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person text-secondary" style="font-size: 1.5rem;"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h5 class="mb-1">{{ product.seller.username }}</h5>
+                    <p class="mb-0 text-muted">{{ product.location }}</p>
+                </div>
+            </div>
+            {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+            <div class="mt-3 d-grid">
+                <a href="{{ url_for('chat.create_private_chat', user_id=product.seller_id) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-chat-dots"></i> 판매자와 채팅하기
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <!-- 구매 모달 -->
@@ -213,22 +242,17 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="messageModalLabel">판매자에게 메시지 보내기</h5>
+                <h5 class="modal-title" id="messageModalLabel">판매자와 채팅하기</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
             </div>
-            <form action="{{ url_for('message.send', recipient_id=product.seller_id) }}" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                    <div class="mb-3">
-                        <label for="message" class="form-label">메시지</label>
-                        <textarea class="form-control" id="message" name="content" rows="3" required placeholder="메시지를 입력하세요"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="submit" class="btn btn-primary">보내기</button>
-                </div>
-            </form>
+            <div class="modal-body">
+                <p>{{ product.title }} 상품에 대해 판매자 <strong>{{ product.seller.username }}</strong>님과 채팅을 시작하시겠습니까?</p>
+                <p class="text-muted">채팅방에서 상품에 대한 문의와 거래 조건을 협의할 수 있습니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" id="startChatButton" class="btn btn-primary">채팅 시작하기</button>
+            </div>
         </div>
     </div>
 </div>
@@ -261,7 +285,7 @@
 
 {% block scripts %}
 <script>
-    // 썸네일 클릭 시 해당 이미지로 캐러셀 이동
+    // 썸네일 클릭 이벤트
     document.querySelectorAll('.img-thumbnail').forEach(function(img) {
         img.addEventListener('click', function() {
             const slideIndex = this.getAttribute('data-bs-slide-to');
@@ -269,5 +293,41 @@
             carousel.to(parseInt(slideIndex));
         });
     });
+    
+    {% if current_user.is_authenticated and current_user.id != product.seller_id %}
+    // 채팅 시작 버튼 이벤트
+    const startChatButton = document.getElementById('startChatButton');
+    if (startChatButton) {
+        startChatButton.addEventListener('click', function() {
+            const sellerId = parseInt('{{ product.seller_id }}');
+            const productId = parseInt('{{ product.id }}');
+            
+            fetch('/chat/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    seller_id: sellerId,
+                    product_id: productId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message || '채팅방을 생성하는 도중 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('채팅방을 생성하는 도중 오류가 발생했습니다.');
+            });
+        });
+    }
+    {% endif %}
 </script>
 {% endblock %} 

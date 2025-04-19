@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if chat_room.type == 'private' and other_user %}
+        채팅 - {{ other_user.username }} - 중고거래 플랫폼
+    {% else %}
+        {{ chat_room.name }} - 중고거래 플랫폼
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- 채팅방 정보 및 메시지 -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            {% if chat_room.type == 'private' and other_user %}
+                                <i class="bi bi-person-circle"></i> {{ other_user.username }}
+                            {% else %}
+                                <i class="bi bi-people-fill"></i> {{ chat_room.name }}
+                            {% endif %}
+                        </h5>
+                        <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-light">목록으로</a>
+                    </div>
+                </div>
+                <div class="card-body chat-messages" id="messageContainer" style="height: 400px; overflow-y: auto;">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="message-item mb-3 {% if message.sender_id == current_user.id %}text-end{% endif %}">
+                                <div class="message-content {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} rounded p-2 d-inline-block">
+                                    {{ message.content }}
+                                </div>
+                                <div class="message-info">
+                                    <small class="text-muted">
+                                        {% if message.sender_id != current_user.id %}
+                                            {{ message.sender.username }} ·
+                                        {% endif %}
+                                        {{ message.created_at|format_datetime }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <p>대화 내용이 없습니다. 첫 메시지를 보내보세요!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <form id="messageForm" action="{{ url_for('chat.send_message', room_id=chat_room.id) }}" method="post">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="content" name="content" placeholder="메시지를 입력하세요..." autocomplete="off" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> 전송
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 참여자 정보 -->
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">
+                    {% if chat_room.type == 'private' %}
+                        <h5 class="mb-0">대화 상대</h5>
+                    {% else %}
+                        <h5 class="mb-0">참여자 목록 ({{ participants|length }})</h5>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if chat_room.type == 'private' and other_user %}
+                        <div class="d-flex align-items-center mb-3">
+                            {% if other_user.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" alt="{{ other_user.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ other_user.username }}</h6>
+                                <small class="text-muted">{{ other_user.email }}</small>
+                            </div>
+                        </div>
+                    {% elif chat_room.type == 'public' and participants %}
+                        <div class="list-group list-group-flush">
+                            {% for user in participants %}
+                                <div class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        {% if user.profile_image %}
+                                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" alt="{{ user.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0 {% if user.id == current_user.id %}text-primary{% endif %}">
+                                                {{ user.username }} 
+                                                {% if user.id == current_user.id %}(나){% endif %}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">참여자 정보가 없습니다.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 페이지 로드 시 스크롤을 맨 아래로 이동
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageContainer = document.getElementById('messageContainer');
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+        
+        // 폼 제출 시 AJAX로 처리
+        const messageForm = document.getElementById('messageForm');
+        const contentInput = document.getElementById('content');
+        
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!contentInput.value.trim()) {
+                return;
+            }
+            
+            // 폼 데이터를 객체로 변환
+            const content = contentInput.value.trim();
+            
+            fetch(messageForm.action, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    'content': content
+                }),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 메시지 전송 성공
+                    contentInput.value = '';
+                    contentInput.focus();
+                    
+                    // 새 메시지 추가 (선택적으로 처리, 폴링에서도 처리됨)
+                    addMessage(data.message, true);
+                }
+            })
+            .catch(error => {
+                console.error('메시지 전송 중 오류 발생:', error);
+            });
+        });
+        
+        // 주기적으로 새 메시지 확인
+        let lastMessageId = getLastMessageId();
+        
+        // 5초마다 새 메시지 확인
+        setInterval(fetchNewMessages, 5000);
+        
+        function fetchNewMessages() {
+            fetch(`{{ url_for('chat.api_get_messages', room_id=chat_room.id) }}?last_id=${lastMessageId}`)
+            .then(response => response.json())
+            .then(messages => {
+                if (messages.length > 0) {
+                    messages.forEach(message => {
+                        addMessage(message, false);
+                    });
+                    
+                    // 마지막 메시지 ID 업데이트
+                    lastMessageId = messages[messages.length - 1].id;
+                }
+            })
+            .catch(error => {
+                console.error('새 메시지 확인 중 오류 발생:', error);
+            });
+        }
+        
+        function addMessage(message, isSelf) {
+            const messageContainer = document.getElementById('messageContainer');
+            
+            const messageItem = document.createElement('div');
+            messageItem.className = `message-item mb-3 ${isSelf || message.is_self ? 'text-end' : ''}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = `message-content ${isSelf || message.is_self ? 'bg-primary text-white' : 'bg-light'} rounded p-2 d-inline-block`;
+            messageContent.textContent = message.content;
+            
+            const messageInfo = document.createElement('div');
+            messageInfo.className = 'message-info';
+            
+            const timeInfo = document.createElement('small');
+            timeInfo.className = 'text-muted';
+            if (!isSelf && !message.is_self) {
+                timeInfo.textContent = `${message.sender_name} · ${formatDateTime(message.created_at)}`;
+            } else {
+                timeInfo.textContent = formatDateTime(message.created_at);
+            }
+            
+            messageInfo.appendChild(timeInfo);
+            messageItem.appendChild(messageContent);
+            messageItem.appendChild(messageInfo);
+            
+            messageContainer.appendChild(messageItem);
+            
+            // 스크롤을 맨 아래로 이동
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+        
+        function getLastMessageId() {
+            const messageItems = document.querySelectorAll('.message-item');
+            if (messageItems.length > 0) {
+                const lastMessage = messageItems[messageItems.length - 1];
+                return lastMessage.dataset.messageId || 0;
+            }
+            return 0;
+        }
+        
+        function formatDateTime(dateTimeStr) {
+            const date = new Date(dateTimeStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+    });
+</script>
+{% endblock %} 

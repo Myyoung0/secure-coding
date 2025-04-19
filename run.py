@@ -14,4 +14,7 @@ def make_shell_context():
         'Report': Report,
         'ProductImage': ProductImage,
         'SearchLog': SearchLog
-    } 
+    }
+
+if __name__ == '__main__':
+    app.run(debug=True) 

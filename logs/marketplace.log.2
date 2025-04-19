@@ -1,0 +1,136 @@
+2025-04-19 15:05:02,468 INFO: 중고거래 플랫폼 시작 [in /var/www/html/secure-coding/app/__init__.py:96]
+2025-04-19 15:05:30,763 ERROR: Exception on /chat/ [GET] [in /var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py:1454]
+Traceback (most recent call last):
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1771, in _execute_context
+    self.dialect.do_execute(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 717, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: chat_participants
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 2070, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1515, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 165, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1513, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1499, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask_login/utils.py", line 272, in decorated_view
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/app/chat/routes.py", line 14, in index
+    participations = ChatParticipant.query.filter_by(user_id=current_user.id).all()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2711, in all
+    return self._iter().all()
+           ^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2846, in _iter
+    result = self.session.execute(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1689, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1583, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 323, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1452, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1814, in _execute_context
+    self._handle_dbapi_exception(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1995, in _handle_dbapi_exception
+    util.raise_(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/util/compat.py", line 207, in raise_
+    raise exception
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1771, in _execute_context
+    self.dialect.do_execute(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 717, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: chat_participants
+[SQL: SELECT chat_participants.id AS chat_participants_id, chat_participants.user_id AS chat_participants_user_id, chat_participants.chat_room_id AS chat_participants_chat_room_id, chat_participants.joined_at AS chat_participants_joined_at, chat_participants.last_read_at AS chat_participants_last_read_at 
+FROM chat_participants 
+WHERE chat_participants.user_id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2025-04-19 15:05:57,112 INFO: 중고거래 플랫폼 시작 [in /var/www/html/secure-coding/app/__init__.py:96]
+2025-04-19 15:06:05,437 ERROR: Exception on /chat/ [GET] [in /var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py:1454]
+Traceback (most recent call last):
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1771, in _execute_context
+    self.dialect.do_execute(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 717, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such table: chat_participants
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 2070, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1515, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask_cors/extension.py", line 165, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1513, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask/app.py", line 1499, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/flask_login/utils.py", line 272, in decorated_view
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/app/chat/routes.py", line 14, in index
+    participations = ChatParticipant.query.filter_by(user_id=current_user.id).all()
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2711, in all
+    return self._iter().all()
+           ^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/query.py", line 2846, in _iter
+    result = self.session.execute(
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py", line 1689, in execute
+    result = conn._execute_20(statement, params or {}, execution_options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1583, in _execute_20
+    return meth(self, args_10style, kwargs_10style, execution_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 323, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1452, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1814, in _execute_context
+    self._handle_dbapi_exception(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1995, in _handle_dbapi_exception
+    util.raise_(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/util/compat.py", line 207, in raise_
+    raise exception
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1771, in _execute_context
+    self.dialect.do_execute(
+  File "/var/www/html/secure-coding/venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 717, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: chat_participants
+[SQL: SELECT chat_participants.id AS chat_participants_id, chat_participants.user_id AS chat_participants_user_id, chat_participants.chat_room_id AS chat_participants_chat_room_id, chat_participants.joined_at AS chat_participants_joined_at, chat_participants.last_read_at AS chat_participants_last_read_at 
+FROM chat_participants 
+WHERE chat_participants.user_id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)
+2025-04-19 15:22:02,496 INFO: 중고거래 플랫폼 시작 [in /var/www/html/secure-coding/app/__init__.py:96]
+2025-04-19 15:22:14,410 INFO: 중고거래 플랫폼 시작 [in /var/www/html/secure-coding/app/__init__.py:96]

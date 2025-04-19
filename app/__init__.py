@@ -4,21 +4,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_cors import CORS
+import logging
+from logging.handlers import RotatingFileHandler
+from config import Config
 
 # DB 초기화
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.login_message = '이 페이지에 접근하려면 로그인이 필요합니다.'
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    
-    # 설정
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret_key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///marketplace.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/uploads')
-    app.config['DEBUG'] = True  # 디버그 모드 활성화
+    app.config.from_object(config_class)
     
     # 폴더 생성
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -27,7 +26,6 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
     CORS(app)
     
     # Jinja2 필터 등록
@@ -73,4 +71,30 @@ def create_app():
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
     
-    return app 
+    from app.chat import bp as chat_bp
+    app.register_blueprint(chat_bp, url_prefix='/chat')
+    
+    # 필터 등록
+    app.jinja_env.filters['format_number'] = format_number
+    app.jinja_env.filters['format_datetime'] = format_datetime
+    
+    # 에러 핸들링
+    if not app.debug and not app.testing:
+        # 로그 디렉토리 생성
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        
+        # 로그 파일 설정
+        file_handler = RotatingFileHandler('logs/marketplace.log', maxBytes=10240, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info('중고거래 플랫폼 시작')
+    
+    return app
+
+from app import models 
