@@ -372,4 +372,37 @@ def purchase_product(product_id):
     except Exception as e:
         db.session.rollback()
         flash(f'구매 처리 중 오류가 발생했습니다: {str(e)}')
-        return redirect(url_for('product.view_product', product_id=product.id)) 
+        return redirect(url_for('product.view_product', product_id=product.id))
+
+@bp.route('/<int:product_id>/change-status', methods=['POST'])
+@login_required
+def change_status(product_id):
+    """상품 상태 변경"""
+    product = Product.query.get_or_404(product_id)
+    
+    # 판매자만 상태 변경 가능
+    if current_user.id != product.seller_id:
+        flash('이 상품의 상태를 변경할 권한이 없습니다.')
+        return redirect(url_for('product.view_product', product_id=product.id))
+    
+    # 상태 매핑 - template 상태값(available, reserved, sold)을 모델 상태값(active, reserved, sold)으로 변환
+    status_map = {
+        'available': 'active',  # 판매중 -> active
+        'reserved': 'reserved', # 거래중 -> reserved
+        'sold': 'sold'          # 판매완료 -> sold
+    }
+    template_status = request.form.get('status', 'available')
+    product.status = status_map.get(template_status, 'active')  # 기본값은 active
+    
+    product.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    # 상태별 메시지
+    status_messages = {
+        'active': '상품 상태가 판매중으로 변경되었습니다.',
+        'reserved': '상품 상태가 거래중으로 변경되었습니다.',
+        'sold': '상품 상태가 판매완료로 변경되었습니다.'
+    }
+    
+    flash(status_messages.get(product.status, '상품 상태가 변경되었습니다.'))
+    return redirect(url_for('product.view_product', product_id=product.id)) 

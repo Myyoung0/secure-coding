@@ -57,6 +57,7 @@
                     {% if current_user.id == product.seller_id %}
                         <a href="{{ url_for('product.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">수정</a>
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">삭제</button>
+                        <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#statusModal">상태 변경</button>
                     {% endif %}
                 </div>
             </div>
@@ -85,12 +86,12 @@
                 <div class="d-flex mb-2">
                     <div style="width: 100px;"><strong>상품상태</strong></div>
                     <div>
-                        {% if product.status == 'available' %}
-                            <span class="badge bg-success">판매중</span>
+                        {% if product.status == 'active' %}
+                            <span class="badge bg-success fs-6">판매중</span>
                         {% elif product.status == 'reserved' %}
-                            <span class="badge bg-warning text-dark">예약중</span>
+                            <span class="badge bg-warning text-dark fs-6">거래중</span>
                         {% elif product.status == 'sold' %}
-                            <span class="badge bg-secondary">판매완료</span>
+                            <span class="badge bg-secondary fs-6">판매완료</span>
                         {% endif %}
                     </div>
                 </div>
@@ -108,7 +109,7 @@
             
             <div class="d-grid gap-2 mt-4">
                 {% if current_user.is_authenticated and current_user.id != product.seller_id %}
-                    {% if product.status == 'available' %}
+                    {% if product.status == 'active' %}
                         <button class="btn btn-lg btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#purchaseModal">
                             구매하기
                         </button>
@@ -117,12 +118,12 @@
                         </button>
                     {% elif product.status == 'reserved' %}
                         <button class="btn btn-lg btn-warning" type="button" disabled>
-                            예약중
+                            거래중
                         </button>
                         <button class="btn btn-lg btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#messageModal">
                             채팅하기
                         </button>
-                    {% else %}
+                    {% elif product.status == 'sold' %}
                         <button class="btn btn-lg btn-secondary" type="button" disabled>
                             판매완료
                         </button>
@@ -276,6 +277,43 @@
                     <button type="submit" class="btn btn-danger">삭제</button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 상품 상태 변경 모달 -->
+{% if current_user.is_authenticated and current_user.id == product.seller_id %}
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">상품 상태 변경</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <form id="statusForm" action="{{ url_for('product.change_status', product_id=product.id) }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="product_status" class="form-label">상품 상태 선택</label>
+                        <select class="form-select" id="product_status" name="status" required>
+                            <option value="available" {% if product.status == 'active' %}selected{% endif %}>판매중</option>
+                            <option value="reserved" {% if product.status == 'reserved' %}selected{% endif %}>거래중</option>
+                            <option value="sold" {% if product.status == 'sold' %}selected{% endif %}>판매완료</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-muted">
+                            <strong>판매중</strong>: 구매자를 기다리고 있는 상태<br>
+                            <strong>거래중</strong>: 구매자와 거래 진행 중인 상태<br>
+                            <strong>판매완료</strong>: 판매가 완료된 상태
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-primary">변경하기</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

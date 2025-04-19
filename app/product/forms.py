@@ -18,6 +18,11 @@ class ProductForm(FlaskForm):
         ('etc', '기타')
     ])
     location = StringField('지역', validators=[DataRequired(), Length(min=2, max=100)])
+    status = SelectField('판매 상태', validators=[DataRequired()], choices=[
+        ('available', '판매중'),
+        ('reserved', '거래중'),
+        ('sold', '판매완료')
+    ])
     images = MultipleFileField('이미지', validators=[
         FileRequired('최소 한 개의 이미지를 업로드해주세요.'),
         FileAllowed(['jpg', 'png', 'jpeg', 'gif'], '이미지 파일만 업로드 가능합니다.')
