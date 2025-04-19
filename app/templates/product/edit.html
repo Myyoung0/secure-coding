@@ -63,7 +63,7 @@
                                 {% for image in product.images %}
                                 <div class="col-4 col-md-3 mb-2">
                                     <div class="card position-relative">
-                                        <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" class="card-img-top" alt="상품 이미지" style="height: 150px; object-fit: cover;">
+                                        <img src="{{ url_for('static', filename='uploads/' + image.image_path) }}" class="card-img-top" alt="상품 이미지" style="height: 150px; object-fit: cover;">
                                         <div class="position-absolute top-0 end-0">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="delete_image_{{ image.id }}" name="delete_images" value="{{ image.id }}">
@@ -79,12 +79,12 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">새 이미지 추가 (최대 {{ 5 - product.images|length }}장)</label>
+                            <label class="form-label">새 이미지 추가 (최대 {{ 5 - product.images.count() }}장)</label>
                             <div class="input-group">
-                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*" {% if product.images|length >= 5 %}disabled{% endif %}>
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*" {% if product.images.count() >= 5 %}disabled{% endif %}>
                             </div>
                             <div class="form-text">JPG, PNG, GIF 파일만 가능, 각 파일 최대 5MB</div>
-                            {% if product.images|length >= 5 %}
+                            {% if product.images.count() >= 5 %}
                             <div class="alert alert-warning mt-2">
                                 이미 최대 이미지 수(5장)에 도달했습니다. 새 이미지를 추가하려면 기존 이미지를 삭제하세요.
                             </div>
@@ -98,7 +98,7 @@
                         <div class="mb-3">
                             <label for="status" class="form-label">상품 상태</label>
                             <select class="form-select" id="status" name="status" required>
-                                <option value="available" {% if product.status == 'available' %}selected{% endif %}>판매중</option>
+                                <option value="available" {% if product.status == 'active' %}selected{% endif %}>판매중</option>
                                 <option value="reserved" {% if product.status == 'reserved' %}selected{% endif %}>예약중</option>
                                 <option value="sold" {% if product.status == 'sold' %}selected{% endif %}>판매완료</option>
                             </select>
@@ -106,7 +106,7 @@
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">상품 정보 수정</button>
-                            <a href="{{ url_for('product.view', product_id=product.id) }}" class="btn btn-outline-secondary">취소</a>
+                            <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="btn btn-outline-secondary">취소</a>
                         </div>
                     </form>
                 </div>
@@ -138,11 +138,11 @@
     const imageInput = document.getElementById('images');
     const imagePreview = document.getElementById('imagePreview');
     
-    {% if product.images|length < 5 %}
+    {% if product.images.count() < 5 %}
     imageInput.addEventListener('change', function() {
         imagePreview.innerHTML = '';
         
-        const currentImageCount = {{ product.images|length }};
+        const currentImageCount = {{ product.images.count() }};
         const maxNewImages = 5 - currentImageCount;
         
         if (this.files.length > maxNewImages) {
@@ -176,7 +176,7 @@
     
     // 폼 제출 전 검증
     document.getElementById('productForm').addEventListener('submit', function(e) {
-        const currentImageCount = {{ product.images|length }};
+        const currentImageCount = {{ product.images.count() }};
         const deleteImageCheckboxes = document.querySelectorAll('input[name="delete_images"]:checked').length;
         const newImageCount = document.getElementById('images').files.length;
         

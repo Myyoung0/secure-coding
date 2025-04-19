@@ -74,16 +74,45 @@ def edit_product(product_id):
     
     form = ProductForm()
     
-    if form.validate_on_submit():
+    if request.method == 'POST':
         # 상품 정보 업데이트
-        product.title = form.title.data
-        product.description = form.description.data
-        product.price = form.price.data
-        product.category = form.category.data
-        product.location = form.location.data
+        product.title = request.form.get('title')
+        product.description = request.form.get('description')
+        product.price = request.form.get('price')
+        product.category = request.form.get('category')
+        product.location = request.form.get('location')
+        
+        # 상태 매핑 - template 상태값(available, reserved, sold)을 모델 상태값(active, reserved, sold, hidden)으로 변환
+        status_map = {
+            'available': 'active',  # 판매중 -> active
+            'reserved': 'reserved', # 예약중 -> reserved
+            'sold': 'sold'          # 판매완료 -> sold
+        }
+        template_status = request.form.get('status', 'available')
+        product.status = status_map.get(template_status, 'active')  # 기본값은 active
+        
         product.updated_at = datetime.utcnow()
         
-        # 이미지 처리 (기존 이미지는 유지, 새 이미지만 추가)
+        # 삭제할 이미지 처리
+        delete_images = request.form.getlist('delete_images')
+        for image_id in delete_images:
+            image = ProductImage.query.get(image_id)
+            if image and image.product_id == product.id:
+                # 이미지가 최소 1개는 남아있는지 확인
+                if product.images.count() <= 1 and len(delete_images) >= product.images.count() and not request.files.getlist('images')[0].filename:
+                    flash('상품 이미지는 최소 1장 이상 필요합니다.')
+                    return render_template('product/edit.html', title='상품 수정', form=form, product=product)
+                
+                # 파일 시스템에서 이미지 삭제
+                try:
+                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], image.image_path))
+                except:
+                    pass  # 파일이 없어도 계속 진행
+                
+                # DB에서 이미지 삭제
+                db.session.delete(image)
+        
+        # 새 이미지 추가
         images = request.files.getlist('images')
         for image in images:
             if image and image.filename:
