@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}다시마켓 - 소중한 물건에 새 생명을{% endblock %}
+
+{% block styles %}
+<style>
+    .hero-section {
+        background-image: linear-gradient(rgba(74, 171, 114, 0.9), rgba(74, 171, 114, 0.7)), url('{{ url_for('static', filename='img/hero-bg.jpg') }}');
+        background-position: center;
+        background-size: cover;
+        border-radius: var(--border-radius);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero mb-5 py-5 rounded bg-primary">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-white">
+                <h1 class="display-5 fw-bold mb-3">소중한 물건에<br>새로운 생명을</h1>
+                <p class="lead mb-4">한 번 더 쓰는 특별한 가치, 다시마켓과 함께하세요.<br>
+                환경도 지키고, 경제적인 소비 생활을 시작하세요.</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{{ url_for('main.search') }}" class="btn btn-light btn-lg px-4 me-md-2">
+                        <i class="bi bi-search me-2"></i>물건 찾기
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('product.create_product') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-up me-2"></i>판매하기
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>로그인
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="text-center mt-4">
+                    <i class="bi bi-recycle display-1 text-white opacity-75 recycle-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="benefits my-5">
+    <div class="container">
+        <h2 class="text-center mb-4">다시마켓의 <span class="logo-accent">특별한 가치</span></h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-globe2 text-primary fs-1 mb-3"></i>
+                        <h4>지구를 생각하는 소비</h4>
+                        <p class="text-muted">중고 거래로 자원 낭비를 줄이고 환경을 보호합니다. 작은 실천이 큰 변화를 만듭니다.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-piggy-bank text-primary fs-1 mb-3"></i>
+                        <h4>똑똑한 경제 활동</h4>
+                        <p class="text-muted">필요 없는 물건을 판매하고, 필요한 물건은 합리적 가격에 구매하세요.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check text-primary fs-1 mb-3"></i>
+                        <h4>안전한 거래 보장</h4>
+                        <p class="text-muted">검증된 회원들과 안전 결제 시스템으로 누구나 안심하고 거래할 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="products my-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>최신 등록 상품</h2>
+            <a href="{{ url_for('main.search') }}" class="text-decoration-none text-primary">더 보기 <i class="bi bi-arrow-right"></i></a>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in latest_products %}
+            <div class="col-md-3">
+                <a href="{{ url_for('product.view_product', product_id=product.id) }}" class="text-decoration-none text-dark">
+                    <div class="card h-100 product-card">
+                        <div class="position-relative">
+                            {% if product.images.first() %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.images.first().image_path) }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                <i class="bi bi-image text-muted fs-1"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <span class="position-absolute top-0 start-0 m-2 badge bg-primary">{{ product.category }}</span>
+                            {% if product.status == 'sold' %}
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background-color: rgba(0,0,0,0.5);">
+                                <span class="badge bg-danger p-2 fs-6">판매 완료</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">{{ product.title }}</h5>
+                            <p class="card-text text-primary fw-bold">{{ product.price|format_number }}원</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ product.location }}</small>
+                                <small class="text-muted">{{ product.created_at|format_datetime }}</small>
+                            </div>
+                            <div class="mt-2">
+                                <span class="eco-badge">
+                                    <i class="bi bi-recycle me-1"></i> 재사용
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+            
+            {% if not latest_products %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    아직 등록된 상품이 없습니다.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="cta my-5 py-5 bg-light rounded">
+    <div class="container text-center">
+        <h2 class="mb-3">지금 <span class="logo-accent">다시</span>마켓을 시작하세요</h2>
+        <p class="lead mb-4">소중한 물건에 새 주인을 찾아주고, 필요한 물건을 합리적인 가격에 구매하세요.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('product.create_product') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                <i class="bi bi-box-arrow-up me-2"></i>판매 시작하기
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                <i class="bi bi-person-plus me-2"></i>회원가입
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.search') }}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="bi bi-search me-2"></i>둘러보기
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
