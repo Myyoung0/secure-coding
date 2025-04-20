@@ -4,6 +4,32 @@
 
 {% block styles %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+<style>
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        padding: 1rem;
+        font-weight: 500;
+        position: relative;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--primary-color);
+        background-color: transparent;
+        border-bottom: 3px solid var(--primary-color);
+    }
+    .nav-tabs .nav-link:hover:not(.active) {
+        border-bottom: 3px solid #e9ecef;
+    }
+    .chat-tabs-content {
+        background-color: #fff;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
+    .text-empty {
+        text-align: center;
+        padding: 2rem 0;
+        color: #6c757d;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -48,126 +74,224 @@
 
         <!-- 메인 콘텐츠 -->
         <div class="col-md-8">
-            <!-- 1대1 채팅방 -->
-            <div class="card chat-room-info mb-4">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-person me-2"></i> 1대1 채팅
-                        </h5>
+            <!-- 채팅 탭 -->
+            <ul class="nav nav-tabs" id="chatTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="one-on-one-tab" data-bs-toggle="tab" data-bs-target="#one-on-one" type="button" role="tab" aria-controls="one-on-one" aria-selected="true">
+                        <i class="bi bi-person me-2"></i> 1대1 채팅
                         <span class="badge bg-primary rounded-pill">{{ private_rooms|length }}</span>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    {% if private_rooms %}
-                        <div class="list-group list-group-flush">
-                            {% for item in private_rooms %}
-                                {% set room = item.room %}
-                                {% set other_user = item.other_user %}
-                                <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            {% if other_user.profile_image %}
-                                                <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" class="user-avatar small" alt="{{ other_user.username }}">
-                                            {% else %}
-                                                <div class="user-avatar small">
-                                                    <i class="bi bi-person"></i>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="live-chat-tab" data-bs-toggle="tab" data-bs-target="#live-chat" type="button" role="tab" aria-controls="live-chat" aria-selected="false">
+                        <i class="bi bi-globe me-2"></i> 실시간 채팅
+                        <span class="badge bg-danger rounded-pill">Live</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="group-chat-tab" data-bs-toggle="tab" data-bs-target="#group-chat" type="button" role="tab" aria-controls="group-chat" aria-selected="false">
+                        <i class="bi bi-people me-2"></i> 그룹 채팅
+                        <span class="badge bg-primary rounded-pill">{{ public_rooms|length + all_public_rooms|length }}</span>
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content chat-tabs-content p-0" id="chatTabsContent">
+                <!-- 1대1 채팅 탭 -->
+                <div class="tab-pane fade show active" id="one-on-one" role="tabpanel" aria-labelledby="one-on-one-tab">
+                    <div class="card chat-room-info border-top-0 rounded-top-0">
+                        <div class="card-body p-0">
+                            {% if private_rooms %}
+                                <div class="list-group list-group-flush">
+                                    {% for item in private_rooms %}
+                                        {% set room = item.room %}
+                                        {% set other_user = item.other_user %}
+                                        <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    {% if other_user.profile_image %}
+                                                        <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" class="user-avatar small" alt="{{ other_user.username }}">
+                                                    {% else %}
+                                                        <div class="user-avatar small">
+                                                            <i class="bi bi-person"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="ms-2">
+                                                        <h6 class="mb-0">{{ other_user.username }}</h6>
+                                                        <small class="text-muted">{{ room.created_at|format_datetime }}</small>
+                                                    </div>
                                                 </div>
-                                            {% endif %}
-                                            <div class="ms-2">
-                                                <h6 class="mb-0">{{ other_user.username }}</h6>
-                                                <small class="text-muted">{{ room.created_at|format_datetime }}</small>
+                                                <i class="bi bi-chevron-right text-muted"></i>
                                             </div>
-                                        </div>
-                                        <i class="bi bi-chevron-right text-muted"></i>
-                                    </div>
-                                </a>
-                            {% endfor %}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-empty">
+                                    <p>진행 중인 1대1 채팅이 없습니다.</p>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <div class="text-empty">
-                            <p>진행 중인 1대1 채팅이 없습니다.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 내가 참여한 전체 채팅방 -->
-            <div class="card chat-room-info mb-4">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-people me-2"></i> 내가 참여한 채팅방
-                        </h5>
-                        <span class="badge bg-primary rounded-pill">{{ public_rooms|length }}</span>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    {% if public_rooms %}
-                        <div class="list-group list-group-flush">
-                            {% for room in public_rooms %}
-                                <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <div class="user-avatar small">
-                                                <i class="bi bi-people"></i>
-                                            </div>
-                                            <div class="ms-2">
-                                                <h6 class="mb-0">{{ room.name }}</h6>
-                                                <small class="text-muted">참여자 {{ room.participants.count() }}명 · {{ room.created_at|format_datetime }}</small>
-                                            </div>
+                
+                <!-- 실시간 채팅 탭 -->
+                <div class="tab-pane fade" id="live-chat" role="tabpanel" aria-labelledby="live-chat-tab">
+                    {% if global_chat_room %}
+                    <div class="card chat-room-info border-top-0 rounded-top-0">
+                        <div class="card-body">
+                            <div class="text-center py-4">
+                                <div class="mb-3">
+                                    <span class="badge bg-danger mb-2">실시간</span>
+                                    <h3 class="mb-1">{{ global_chat_room.name }}</h3>
+                                    <p class="text-muted">모든 로그인 유저와 실시간으로 소통할 수 있는 채팅방입니다.</p>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-center align-items-center mb-2">
+                                        <div class="user-avatar me-2">
+                                            <i class="bi bi-people"></i>
                                         </div>
-                                        <i class="bi bi-chevron-right text-muted"></i>
+                                        <h5 class="mb-0">현재 {{ global_chat_room.participants.count() }}명 참여 중</h5>
                                     </div>
+                                </div>
+                                <a href="{{ url_for('chat.view_room', room_id=global_chat_room.id) }}" class="btn btn-primary btn-lg px-4">
+                                    <i class="bi bi-chat-text me-2"></i> 지금 참여하기
                                 </a>
-                            {% endfor %}
+                            </div>
                         </div>
-                    {% else %}
-                        <div class="text-empty">
-                            <p>참여 중인 전체 채팅방이 없습니다.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- 모든 전체 채팅방 -->
-            <div class="card chat-room-info">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-globe me-2"></i> 모든 채팅방
-                        </h5>
-                        <span class="badge bg-primary rounded-pill">{{ all_public_rooms|length }}</span>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    {% if all_public_rooms %}
-                        <div class="list-group list-group-flush">
-                            {% for room in all_public_rooms %}
-                                <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <div class="user-avatar small">
-                                                <i class="bi bi-people"></i>
-                                            </div>
-                                            <div class="ms-2">
-                                                <h6 class="mb-0">{{ room.name }}</h6>
-                                                <small class="text-muted">참여자 {{ room.participants.count() }}명</small>
-                                            </div>
-                                        </div>
-                                        <span class="badge bg-light text-primary">참여하기</span>
-                                    </div>
-                                </a>
-                            {% endfor %}
-                        </div>
                     {% else %}
-                        <div class="text-empty">
-                            <p>생성된 전체 채팅방이 없습니다.</p>
+                    <div class="card chat-room-info border-top-0 rounded-top-0">
+                        <div class="card-body">
+                            <div class="text-empty">
+                                <p>실시간 채팅방을 불러올 수 없습니다.</p>
+                                <button class="btn btn-outline-primary mt-2" id="refreshGlobalChat">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> 새로고침
+                                </button>
+                            </div>
                         </div>
+                    </div>
                     {% endif %}
+                </div>
+                
+                <!-- 그룹 채팅 탭 -->
+                <div class="tab-pane fade" id="group-chat" role="tabpanel" aria-labelledby="group-chat-tab">
+                    <div class="card chat-room-info border-top-0 rounded-top-0">
+                        <!-- 내가 참여한 채팅방 -->
+                        <div class="card-header border-0 bg-white">
+                            <h6 class="mb-0">내가 참여한 채팅방</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if public_rooms %}
+                                <div class="list-group list-group-flush">
+                                    {% for room in public_rooms %}
+                                        <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="user-avatar small">
+                                                        <i class="bi bi-people"></i>
+                                                    </div>
+                                                    <div class="ms-2">
+                                                        <h6 class="mb-0">{{ room.name }}</h6>
+                                                        <small class="text-muted">참여자 {{ room.participants.count() }}명 · {{ room.created_at|format_datetime }}</small>
+                                                    </div>
+                                                </div>
+                                                <i class="bi bi-chevron-right text-muted"></i>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-empty">
+                                    <p>참여 중인 그룹 채팅방이 없습니다.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 참여 가능한 채팅방 -->
+                        {% if all_public_rooms %}
+                        <div class="card-header border-top border-bottom-0 bg-white">
+                            <h6 class="mb-0">참여 가능한 채팅방</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for room in all_public_rooms %}
+                                    <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar small">
+                                                    <i class="bi bi-people"></i>
+                                                </div>
+                                                <div class="ms-2">
+                                                    <h6 class="mb-0">{{ room.name }}</h6>
+                                                    <small class="text-muted">참여자 {{ room.participants.count() }}명</small>
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-light text-primary">참여하기</span>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // URL 파라미터에서 탭 정보 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    // 탭 전환 함수
+    const switchToTab = (tabId) => {
+        // 모든 탭 비활성화
+        document.querySelectorAll('.nav-link').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('show');
+            pane.classList.remove('active');
+        });
+        
+        // 선택된 탭 활성화
+        const selectedTab = document.getElementById(`${tabId}-tab`);
+        const selectedPane = document.getElementById(tabId);
+        
+        if (selectedTab && selectedPane) {
+            selectedTab.classList.add('active');
+            selectedPane.classList.add('show');
+            selectedPane.classList.add('active');
+            
+            // URL 업데이트 (히스토리 변경 없이)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabId);
+            window.history.replaceState({}, '', newUrl);
+        }
+    };
+    
+    // URL에 탭 정보가 있으면 해당 탭 활성화
+    if (activeTab) {
+        switchToTab(activeTab);
+    }
+    
+    // 탭 클릭 이벤트 리스너
+    document.querySelectorAll('.nav-link').forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('data-bs-target').substring(1);
+            switchToTab(targetId);
+        });
+    });
+    
+    // 실시간 채팅 새로고침 버튼
+    const refreshButton = document.getElementById('refreshGlobalChat');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', function() {
+            window.location.href = "{{ url_for('chat.global_chat', direct='false') }}";
+        });
+    }
+});
+</script>
 {% endblock %} 

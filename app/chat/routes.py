@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from sqlalchemy import desc, or_, and_
-from app import db
+from app import db, GLOBAL_CHAT_ROOM_ID
 from app.chat import bp
 from app.models import User, ChatRoom, ChatParticipant, ChatMessage, Product
 from datetime import datetime
@@ -10,6 +10,63 @@ from datetime import datetime
 @login_required
 def index():
     """채팅 메인 페이지 - 참여 중인 채팅방 목록"""
+    # global 선언을 먼저 해야 합니다
+    global GLOBAL_CHAT_ROOM_ID
+    
+    # 글로벌 채팅방 ID 확인
+    global_chat_id = GLOBAL_CHAT_ROOM_ID
+    global_chat_room = None
+    
+    # 글로벌 채팅방 이름으로 채팅방 찾기 (name="실시간 전체 채팅")
+    global_chat_room = ChatRoom.query.filter_by(name="실시간 전체 채팅").first()
+    
+    if not global_chat_room:
+        # 글로벌 채팅방이 이름으로 존재하지 않으면 ID로 찾기
+        if global_chat_id:
+            global_chat_room = ChatRoom.query.get(global_chat_id)
+    
+    # 글로벌 채팅방이 없으면 새로 생성
+    if not global_chat_room:
+        try:
+            global_chat_room = ChatRoom(
+                name="실시간 전체 채팅",
+                type="public"
+            )
+            db.session.add(global_chat_room)
+            db.session.flush()  # ID 생성
+            
+            # 앱 설정 업데이트
+            from app import app
+            app.config['GLOBAL_CHAT_ROOM_ID'] = global_chat_room.id
+            GLOBAL_CHAT_ROOM_ID = global_chat_room.id
+            
+            db.session.commit()
+            current_app.logger.info(f'새 글로벌 채팅방이 생성되었습니다. ID: {global_chat_room.id}')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'글로벌 채팅방 생성 실패: {str(e)}')
+    
+    # 글로벌 채팅방에 자동 추가
+    if global_chat_room:
+        # 이미 참여 중인지 확인
+        existing_participant = ChatParticipant.query.filter_by(
+            user_id=current_user.id,
+            chat_room_id=global_chat_room.id
+        ).first()
+        
+        if not existing_participant:
+            # 새 참여자 추가
+            try:
+                new_participant = ChatParticipant(
+                    user_id=current_user.id,
+                    chat_room_id=global_chat_room.id
+                )
+                db.session.add(new_participant)
+                db.session.commit()
+                current_app.logger.info(f'사용자 {current_user.username}(ID: {current_user.id})가 글로벌 채팅방에 추가됨')
+            except Exception as e:
+                current_app.logger.error(f'글로벌 채팅방 참여자 추가 실패: {str(e)}')
+
     # 사용자가 참여 중인 모든 채팅방 가져오기
     participations = ChatParticipant.query.filter_by(user_id=current_user.id).all()
     chat_room_ids = [p.chat_room_id for p in participations]
@@ -38,18 +95,34 @@ def index():
                     'other_user': other_user
                 })
         else:
-            # 전체 채팅방
-            public_rooms.append(room)
+            # 글로벌 채팅방인지 확인 (전체 채팅방 목록에 제외)
+            if global_chat_room and room.id == global_chat_room.id:
+                # 글로벌 채팅방은 별도 처리
+                pass
+            else:
+                # 일반 전체 채팅방
+                public_rooms.append(room)
     
-    # 전체 채팅방 (참여하지 않은 것도 포함)
-    all_public_rooms = ChatRoom.query.filter_by(type='public').all()
+    # 전체 채팅방 (참여하지 않은 것도 포함하되, 글로벌 채팅방은 제외)
+    all_public_rooms = ChatRoom.query.filter(
+        ChatRoom.type == 'public'
+    ).all()
+    
+    # 글로벌 채팅방 제외
+    if global_chat_room:
+        all_public_rooms = [room for room in all_public_rooms if room.id != global_chat_room.id]
+    
+    # 디버깅 정보
+    current_app.logger.info(f'글로벌 채팅방 ID: {global_chat_room.id if global_chat_room else "None"}')
+    current_app.logger.info(f'글로벌 채팅방 객체: {global_chat_room}')
     
     return render_template(
         'chat/index.html',
         title='채팅',
         private_rooms=private_rooms,
         public_rooms=public_rooms,
-        all_public_rooms=all_public_rooms
+        all_public_rooms=all_public_rooms,
+        global_chat_room=global_chat_room
     )
 
 @bp.route('/room/<int:room_id>', methods=['GET'])
@@ -378,4 +451,67 @@ def user_list():
         title='채팅 상대 선택',
         users=users,
         search_query=search_query
-    ) 
+    )
+
+@bp.route('/global', methods=['GET'])
+@login_required
+def global_chat():
+    """글로벌 채팅방 바로가기"""
+    # global 선언을 먼저 해야 합니다
+    global GLOBAL_CHAT_ROOM_ID
+    
+    # 글로벌 채팅방 찾기
+    global_chat_room = ChatRoom.query.filter_by(name="실시간 전체 채팅").first()
+    
+    if not global_chat_room and GLOBAL_CHAT_ROOM_ID:
+        # 이름으로 찾을 수 없으면 ID로 시도
+        global_chat_room = ChatRoom.query.get(GLOBAL_CHAT_ROOM_ID)
+    
+    if not global_chat_room:
+        # 글로벌 채팅방이 없으면 새로 생성
+        try:
+            global_chat_room = ChatRoom(
+                name="실시간 전체 채팅", 
+                type="public"
+            )
+            db.session.add(global_chat_room)
+            db.session.flush()  # ID 생성
+            
+            # 앱 설정 업데이트
+            from app import app
+            app.config['GLOBAL_CHAT_ROOM_ID'] = global_chat_room.id
+            GLOBAL_CHAT_ROOM_ID = global_chat_room.id
+            
+            db.session.commit()
+            current_app.logger.info(f'새 글로벌 채팅방이 생성되었습니다. ID: {global_chat_room.id}')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'글로벌 채팅방 생성 실패: {str(e)}')
+            flash('글로벌 채팅방을 찾을 수 없습니다.')
+            return redirect(url_for('chat.index'))
+    
+    # 채팅 목록 페이지로 이동할지, 채팅방으로 바로 이동할지 확인
+    direct_access = request.args.get('direct', 'true')
+    
+    # 사용자가 이미 참여자인지 확인
+    participation = ChatParticipant.query.filter_by(
+        user_id=current_user.id,
+        chat_room_id=global_chat_room.id
+    ).first()
+    
+    # 참여하지 않았다면 자동으로 추가
+    if not participation:
+        participation = ChatParticipant(
+            user_id=current_user.id,
+            chat_room_id=global_chat_room.id
+        )
+        db.session.add(participation)
+        db.session.commit()
+    
+    # 채팅방으로 리디렉션 또는 채팅 목록 페이지 이동
+    if direct_access == 'true':
+        # 채팅방으로 직접 이동
+        return redirect(url_for('chat.view_room', room_id=global_chat_room.id))
+    else:
+        # 실시간 채팅 탭이 열린 채팅 목록 페이지로 이동
+        return redirect(url_for('chat.index', tab='live-chat')) 

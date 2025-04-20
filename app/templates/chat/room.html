@@ -148,6 +148,12 @@
         const messageForm = document.getElementById('messageForm');
         const contentInput = document.getElementById('content');
         
+        // 메시지 ID 추적을 위한 세트
+        const displayedMessageIds = new Set();
+        
+        // 주기적으로 새 메시지 확인할지 여부
+        let shouldPoll = true;
+        
         messageForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -157,6 +163,9 @@
             
             // 폼 데이터를 객체로 변환
             const content = contentInput.value.trim();
+            
+            // 폴링 일시 중지 (메시지 전송 중 중복 방지)
+            shouldPoll = false;
             
             fetch(messageForm.action, {
                 method: 'POST',
@@ -176,12 +185,22 @@
                     contentInput.value = '';
                     contentInput.focus();
                     
-                    // 새 메시지 추가 (선택적으로 처리, 폴링에서도 처리됨)
-                    addMessage(data.message, true);
+                    // 새 메시지 추가 및 ID 기록
+                    if (data.message && data.message.id) {
+                        displayedMessageIds.add(data.message.id.toString());
+                        addMessage(data.message, true);
+                    }
+                    
+                    // 1초 후 폴링 재개
+                    setTimeout(() => {
+                        shouldPoll = true;
+                    }, 1000);
                 }
             })
             .catch(error => {
                 console.error('메시지 전송 중 오류 발생:', error);
+                // 오류 발생 시 폴링 재개
+                shouldPoll = true;
             });
         });
         
@@ -192,16 +211,31 @@
         setInterval(fetchNewMessages, 5000);
         
         function fetchNewMessages() {
+            // 폴링이 중지되었거나 페이지가 백그라운드에 있을 경우 폴링 건너뛰기
+            if (!shouldPoll || document.hidden) {
+                return;
+            }
+            
             fetch(`{{ url_for('chat.api_get_messages', room_id=chat_room.id) }}?last_id=${lastMessageId}`)
             .then(response => response.json())
             .then(messages => {
                 if (messages.length > 0) {
+                    let newLastMessageId = lastMessageId;
+                    
                     messages.forEach(message => {
-                        addMessage(message, false);
+                        // 이미 표시된 메시지는 건너뜀
+                        if (!displayedMessageIds.has(message.id.toString())) {
+                            displayedMessageIds.add(message.id.toString());
+                            addMessage(message, false);
+                            // 가장 큰 ID 값으로 업데이트
+                            if (message.id > newLastMessageId) {
+                                newLastMessageId = message.id;
+                            }
+                        }
                     });
                     
                     // 마지막 메시지 ID 업데이트
-                    lastMessageId = messages[messages.length - 1].id;
+                    lastMessageId = newLastMessageId;
                 }
             })
             .catch(error => {
@@ -242,7 +276,12 @@
             const messageItems = document.querySelectorAll('.message-item');
             if (messageItems.length > 0) {
                 const lastMessage = messageItems[messageItems.length - 1];
-                return lastMessage.dataset.messageId || 0;
+                const id = lastMessage.dataset.messageId || 0;
+                // ID를 세트에 등록 (기존 메시지 중복 방지)
+                if (id) {
+                    displayedMessageIds.add(id.toString());
+                }
+                return parseInt(id);
             }
             return 0;
         }
@@ -257,6 +296,14 @@
             
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
+        
+        // 페이지 가시성 변경 감지
+        document.addEventListener('visibilitychange', function() {
+            // 페이지가 다시 보이게 되면 폴링 즉시 실행
+            if (!document.hidden && shouldPoll) {
+                fetchNewMessages();
+            }
+        });
     });
 </script>
 {% endblock %} 

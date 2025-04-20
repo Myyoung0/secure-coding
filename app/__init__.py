@@ -15,6 +15,9 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message = '이 페이지에 접근하려면 로그인이 필요합니다.'
 
+# 글로벌 채팅방 ID 저장 변수
+GLOBAL_CHAT_ROOM_ID = None
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -99,6 +102,41 @@ def create_app(config_class=Config):
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
         app.logger.info('중고거래 플랫폼 시작')
+    
+    # 글로벌 채팅방 생성 및 설정
+    with app.app_context():
+        # 앱 모델 임포트
+        from app.models import ChatRoom, ChatParticipant, User, ChatMessage
+        
+        # 글로벌 채팅방 확인 또는 생성
+        global GLOBAL_CHAT_ROOM_ID
+        global_chat = ChatRoom.query.filter_by(name="실시간 전체 채팅").first()
+        
+        if not global_chat:
+            # 글로벌 채팅방 생성
+            global_chat = ChatRoom(name="실시간 전체 채팅", type="public")
+            db.session.add(global_chat)
+            db.session.commit()
+            
+            # 시스템 메시지 추가
+            try:
+                # 관리자 ID 확인
+                admin_user = User.query.filter_by(is_admin=True).first()
+                sender_id = admin_user.id if admin_user else 1
+                
+                system_message = ChatMessage(
+                    chat_room_id=global_chat.id,
+                    sender_id=sender_id,
+                    content="실시간 전체 채팅방이 생성되었습니다. 모든 접속 유저가 함께 채팅할 수 있습니다."
+                )
+                db.session.add(system_message)
+                db.session.commit()
+            except Exception as e:
+                app.logger.error(f'시스템 메시지 생성 실패: {str(e)}')
+            
+            app.logger.info(f'글로벌 채팅방 생성됨: ID {global_chat.id}')
+        
+        GLOBAL_CHAT_ROOM_ID = global_chat.id
     
     return app
 
