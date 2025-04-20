@@ -2,38 +2,44 @@
 
 {% block title %}채팅 - 중고거래 플랫폼{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <div class="row">
+    <div class="row g-4">
         <!-- 사이드바 -->
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
+        <div class="col-md-4">
+            <div class="card chat-room-info mb-4">
+                <div class="card-header">
                     <h5 class="mb-0">채팅</h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{{ url_for('chat.index') }}" class="list-group-item list-group-item-action active">
-                        <i class="bi bi-chat-dots"></i> 채팅방 목록
+                        <i class="bi bi-chat-dots me-2"></i> 채팅방 목록
                     </a>
                     <a href="{{ url_for('chat.user_list') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-people"></i> 채팅 상대 찾기
+                        <i class="bi bi-people me-2"></i> 채팅 상대 찾기
                     </a>
                 </div>
             </div>
 
             <!-- 새 전체 채팅방 생성 폼 -->
-            <div class="card mt-4">
+            <div class="card chat-room-info">
                 <div class="card-header">
-                    <h5 class="mb-0">새 전체 채팅방 생성</h5>
+                    <h5 class="mb-0">새 채팅방 만들기</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ url_for('chat.create_public_chat') }}" method="post">
                         <div class="mb-3">
                             <label for="room_name" class="form-label">채팅방 이름</label>
-                            <input type="text" class="form-control" id="room_name" name="room_name" required>
+                            <input type="text" class="form-control" id="room_name" name="room_name" required placeholder="채팅방 이름을 입력하세요">
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">채팅방 생성</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-1"></i> 채팅방 생성
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -43,95 +49,120 @@
         <!-- 메인 콘텐츠 -->
         <div class="col-md-8">
             <!-- 1대1 채팅방 -->
-            <div class="card mb-4">
+            <div class="card chat-room-info mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-person"></i> 1대1 채팅
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person me-2"></i> 1대1 채팅
+                        </h5>
                         <span class="badge bg-primary rounded-pill">{{ private_rooms|length }}</span>
-                    </h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if private_rooms %}
-                        <div class="list-group">
+                        <div class="list-group list-group-flush">
                             {% for item in private_rooms %}
                                 {% set room = item.room %}
                                 {% set other_user = item.other_user %}
                                 <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">{{ other_user.username }}</h6>
-                                            <small class="text-muted">시작일: {{ room.created_at|format_datetime }}</small>
+                                        <div class="d-flex align-items-center">
+                                            {% if other_user.profile_image %}
+                                                <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" class="user-avatar small" alt="{{ other_user.username }}">
+                                            {% else %}
+                                                <div class="user-avatar small">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div class="ms-2">
+                                                <h6 class="mb-0">{{ other_user.username }}</h6>
+                                                <small class="text-muted">{{ room.created_at|format_datetime }}</small>
+                                            </div>
                                         </div>
-                                        <span class="badge bg-primary rounded-pill">채팅하기</span>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </a>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <p class="mb-0">진행 중인 1대1 채팅이 없습니다.</p>
+                        <div class="text-empty">
+                            <p>진행 중인 1대1 채팅이 없습니다.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- 내가 참여한 전체 채팅방 -->
-            <div class="card mb-4">
+            <div class="card chat-room-info mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-people"></i> 내가 참여한 전체 채팅방
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people me-2"></i> 내가 참여한 채팅방
+                        </h5>
                         <span class="badge bg-primary rounded-pill">{{ public_rooms|length }}</span>
-                    </h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if public_rooms %}
-                        <div class="list-group">
+                        <div class="list-group list-group-flush">
                             {% for room in public_rooms %}
                                 <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">{{ room.name }}</h6>
-                                            <small class="text-muted">생성일: {{ room.created_at|format_datetime }}</small>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar small">
+                                                <i class="bi bi-people"></i>
+                                            </div>
+                                            <div class="ms-2">
+                                                <h6 class="mb-0">{{ room.name }}</h6>
+                                                <small class="text-muted">참여자 {{ room.participants.count() }}명 · {{ room.created_at|format_datetime }}</small>
+                                            </div>
                                         </div>
-                                        <span class="badge bg-primary rounded-pill">입장하기</span>
+                                        <i class="bi bi-chevron-right text-muted"></i>
                                     </div>
                                 </a>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <p class="mb-0">참여 중인 전체 채팅방이 없습니다.</p>
+                        <div class="text-empty">
+                            <p>참여 중인 전체 채팅방이 없습니다.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
 
             <!-- 모든 전체 채팅방 -->
-            <div class="card">
+            <div class="card chat-room-info">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-globe"></i> 모든 전체 채팅방
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-globe me-2"></i> 모든 채팅방
+                        </h5>
                         <span class="badge bg-primary rounded-pill">{{ all_public_rooms|length }}</span>
-                    </h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if all_public_rooms %}
-                        <div class="list-group">
+                        <div class="list-group list-group-flush">
                             {% for room in all_public_rooms %}
                                 <a href="{{ url_for('chat.view_room', room_id=room.id) }}" class="list-group-item list-group-item-action">
                                     <div class="d-flex w-100 justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">{{ room.name }}</h6>
-                                            <small class="text-muted">참여자 수: {{ room.participants.count() }}</small>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar small">
+                                                <i class="bi bi-people"></i>
+                                            </div>
+                                            <div class="ms-2">
+                                                <h6 class="mb-0">{{ room.name }}</h6>
+                                                <small class="text-muted">참여자 {{ room.participants.count() }}명</small>
+                                            </div>
                                         </div>
-                                        <span class="badge bg-primary rounded-pill">참여하기</span>
+                                        <span class="badge bg-light text-primary">참여하기</span>
                                     </div>
                                 </a>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <p class="mb-0">생성된 전체 채팅방이 없습니다.</p>
+                        <div class="text-empty">
+                            <p>생성된 전체 채팅방이 없습니다.</p>
                         </div>
                     {% endif %}
                 </div>

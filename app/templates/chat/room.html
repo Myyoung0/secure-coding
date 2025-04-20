@@ -10,51 +10,61 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="row">
+    <div class="row g-4">
         <!-- 채팅방 정보 및 메시지 -->
         <div class="col-md-9">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
+            <div class="card chat-card">
+                <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
+                        <div class="d-flex align-items-center">
                             {% if chat_room.type == 'private' and other_user %}
-                                <i class="bi bi-person-circle"></i> {{ other_user.username }}
+                                {% if other_user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" class="user-avatar" alt="{{ other_user.username }}">
+                                {% else %}
+                                    <div class="user-avatar">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                {% endif %}
+                                <h5 class="mb-0 ms-2">{{ other_user.username }}</h5>
                             {% else %}
-                                <i class="bi bi-people-fill"></i> {{ chat_room.name }}
+                                <div class="user-avatar">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h5 class="mb-0 ms-2">{{ chat_room.name }}</h5>
                             {% endif %}
-                        </h5>
-                        <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-light">목록으로</a>
+                        </div>
+                        <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> 목록으로
+                        </a>
                     </div>
                 </div>
-                <div class="card-body chat-messages" id="messageContainer" style="height: 400px; overflow-y: auto;">
+                <div class="chat-messages" id="messageContainer">
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="message-item mb-3 {% if message.sender_id == current_user.id %}text-end{% endif %}">
-                                <div class="message-content {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} rounded p-2 d-inline-block">
+                            <div class="message-item {% if message.sender_id == current_user.id %}text-end{% endif %}" data-message-id="{{ message.id }}">
+                                <div class="message-content">
                                     {{ message.content }}
                                 </div>
                                 <div class="message-info">
-                                    <small class="text-muted">
-                                        {% if message.sender_id != current_user.id %}
-                                            {{ message.sender.username }} ·
-                                        {% endif %}
-                                        {{ message.created_at|format_datetime }}
-                                    </small>
+                                    {% if message.sender_id != current_user.id %}
+                                        {{ message.sender.username }} ·
+                                    {% endif %}
+                                    {{ message.created_at|format_datetime }}
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <div class="text-center text-muted py-5">
+                        <div class="text-empty">
                             <p>대화 내용이 없습니다. 첫 메시지를 보내보세요!</p>
                         </div>
                     {% endif %}
                 </div>
                 <div class="card-footer">
                     <form id="messageForm" action="{{ url_for('chat.send_message', room_id=chat_room.id) }}" method="post">
-                        <div class="input-group">
+                        <div class="chat-input-group">
                             <input type="text" class="form-control" id="content" name="content" placeholder="메시지를 입력하세요..." autocomplete="off" required>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> 전송
+                            <button type="submit" class="btn btn-send">
+                                <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
                     </form>
@@ -64,27 +74,29 @@
         
         <!-- 참여자 정보 -->
         <div class="col-md-3">
-            <div class="card">
+            <div class="card chat-room-info">
                 <div class="card-header">
                     {% if chat_room.type == 'private' %}
                         <h5 class="mb-0">대화 상대</h5>
                     {% else %}
-                        <h5 class="mb-0">참여자 목록 ({{ participants|length }})</h5>
+                        <h5 class="mb-0">참여자 ({{ participants|length }})</h5>
                     {% endif %}
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if chat_room.type == 'private' and other_user %}
-                        <div class="d-flex align-items-center mb-3">
-                            {% if other_user.profile_image %}
-                                <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" alt="{{ other_user.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
-                            {% else %}
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                    <i class="bi bi-person"></i>
+                        <div class="p-3">
+                            <div class="d-flex align-items-center">
+                                {% if other_user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + other_user.profile_image) }}" class="user-avatar" alt="{{ other_user.username }}">
+                                {% else %}
+                                    <div class="user-avatar">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0">{{ other_user.username }}</h6>
+                                    <small class="text-muted">{{ other_user.email }}</small>
                                 </div>
-                            {% endif %}
-                            <div>
-                                <h6 class="mb-0">{{ other_user.username }}</h6>
-                                <small class="text-muted">{{ other_user.email }}</small>
                             </div>
                         </div>
                     {% elif chat_room.type == 'public' and participants %}
@@ -93,9 +105,9 @@
                                 <div class="list-group-item">
                                     <div class="d-flex align-items-center">
                                         {% if user.profile_image %}
-                                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" alt="{{ user.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}" class="user-avatar small" alt="{{ user.username }}">
                                         {% else %}
-                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 12px;">
+                                            <div class="user-avatar small">
                                                 <i class="bi bi-person"></i>
                                             </div>
                                         {% endif %}
@@ -110,13 +122,19 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">참여자 정보가 없습니다.</p>
+                        <div class="text-empty">
+                            <p>참여자 정보가 없습니다.</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 {% endblock %}
 
 {% block scripts %}
@@ -195,24 +213,22 @@
             const messageContainer = document.getElementById('messageContainer');
             
             const messageItem = document.createElement('div');
-            messageItem.className = `message-item mb-3 ${isSelf || message.is_self ? 'text-end' : ''}`;
+            messageItem.className = `message-item ${isSelf || message.is_self ? 'text-end' : ''}`;
+            messageItem.dataset.messageId = message.id;
             
             const messageContent = document.createElement('div');
-            messageContent.className = `message-content ${isSelf || message.is_self ? 'bg-primary text-white' : 'bg-light'} rounded p-2 d-inline-block`;
+            messageContent.className = 'message-content';
             messageContent.textContent = message.content;
             
             const messageInfo = document.createElement('div');
             messageInfo.className = 'message-info';
             
-            const timeInfo = document.createElement('small');
-            timeInfo.className = 'text-muted';
             if (!isSelf && !message.is_self) {
-                timeInfo.textContent = `${message.sender_name} · ${formatDateTime(message.created_at)}`;
+                messageInfo.textContent = `${message.sender_name} · ${formatDateTime(message.created_at)}`;
             } else {
-                timeInfo.textContent = formatDateTime(message.created_at);
+                messageInfo.textContent = formatDateTime(message.created_at);
             }
             
-            messageInfo.appendChild(timeInfo);
             messageItem.appendChild(messageContent);
             messageItem.appendChild(messageInfo);
             
