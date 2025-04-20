@@ -15,6 +15,8 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    bank_name = db.Column(db.String(50), nullable=True)
+    account_number = db.Column(db.String(30), nullable=True)
     
     # 관계
     products = db.relationship('Product', backref='seller', lazy='dynamic')

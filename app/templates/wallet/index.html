@@ -32,7 +32,8 @@
                     <h5 class="mb-0">내 계좌 정보</h5>
                 </div>
                 <div class="card-body">
-                    <p class="mb-2"><strong>계좌번호:</strong> {{ current_user.id }}{{ '%010d'|format(current_user.wallet.id) }}</p>
+                    <p class="mb-2"><strong>은행명:</strong> {{ current_user.bank_name }}</p>
+                    <p class="mb-2"><strong>계좌번호:</strong> {{ current_user.account_number }}</p>
                     <p class="mb-2"><strong>이메일:</strong> {{ current_user.email }}</p>
                     <p class="mb-0"><strong>가입일:</strong> {{ current_user.created_at|date_format }}</p>
                 </div>

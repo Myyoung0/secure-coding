@@ -15,6 +15,8 @@ class RegistrationForm(FlaskForm):
     email = StringField('이메일', validators=[DataRequired(), Email()])
     password = PasswordField('비밀번호', validators=[DataRequired(), Length(min=6)])
     password2 = PasswordField('비밀번호 확인', validators=[DataRequired(), EqualTo('password')])
+    bank_name = StringField('은행명', validators=[DataRequired(), Length(max=50)])
+    account_number = StringField('계좌번호', validators=[DataRequired(), Length(max=30)])
     submit = SubmitField('회원가입')
     
     def validate_email(self, email):

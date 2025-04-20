@@ -15,7 +15,12 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data, username=form.username.data)
+        user = User(
+            email=form.email.data, 
+            username=form.username.data,
+            bank_name=form.bank_name.data,
+            account_number=form.account_number.data
+        )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -104,13 +109,18 @@ def edit_profile():
 def api_register():
     data = request.get_json() or {}
     
-    if 'email' not in data or 'password' not in data or 'username' not in data:
+    if 'email' not in data or 'password' not in data or 'username' not in data or 'bank_name' not in data or 'account_number' not in data:
         return jsonify({'error': '필수 필드가 누락되었습니다.'}), 400
     
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': '해당 이메일은 이미 등록되어 있습니다.'}), 400
     
-    user = User(email=data['email'], username=data['username'])
+    user = User(
+        email=data['email'], 
+        username=data['username'],
+        bank_name=data['bank_name'],
+        account_number=data['account_number']
+    )
     user.set_password(data['password'])
     db.session.add(user)
     db.session.commit()
