@@ -8,50 +8,74 @@
     
     <div class="row">
         <div class="col-md-3 mb-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5 class="card-title">전체 사용자</h5>
-                    <h2 class="card-text">{{ stats.user_count }}</h2>
-                    <a href="{{ url_for('admin.users') }}" class="btn btn-light mt-2">사용자 관리</a>
+            <div class="card h-100 shadow-sm">
+                <div class="card-body bg-primary text-white rounded">
+                    <div class="d-flex flex-column h-100">
+                        <h5 class="card-title">전체 사용자</h5>
+                        <h1 class="display-4 mb-3">{{ stats.user_count }}</h1>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-light btn-sm">
+                                <i class="bi bi-person-gear me-1"></i> 사용자 관리
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3 mb-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5 class="card-title">전체 상품</h5>
-                    <h2 class="card-text">{{ stats.product_count }}</h2>
-                    <a href="{{ url_for('admin.products') }}" class="btn btn-light mt-2">상품 관리</a>
+            <div class="card h-100 shadow-sm">
+                <div class="card-body bg-success text-white rounded">
+                    <div class="d-flex flex-column h-100">
+                        <h5 class="card-title">전체 상품</h5>
+                        <h1 class="display-4 mb-3">{{ stats.product_count }}</h1>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('admin.products') }}" class="btn btn-light btn-sm">
+                                <i class="bi bi-box-seam me-1"></i> 상품 관리
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3 mb-4">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">총 거래액</h5>
-                    <h2 class="card-text">{{ stats.total_sales|default(0)|int|format_number }}원</h2>
-                    <a href="{{ url_for('admin.products') }}" class="btn btn-light mt-2">거래 관리</a>
+            <div class="card h-100 shadow-sm">
+                <div class="card-body bg-info text-white rounded">
+                    <div class="d-flex flex-column h-100">
+                        <h5 class="card-title">총 거래액</h5>
+                        <h1 class="display-4 mb-3">{{ stats.total_sales|default(0)|int|format_number }}원</h1>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('admin.products') }}" class="btn btn-light btn-sm">
+                                <i class="bi bi-graph-up me-1"></i> 거래 관리
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-md-3 mb-4">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h5 class="card-title">신고 내역</h5>
-                    <h2 class="card-text">{{ stats.report_count }}</h2>
-                    <a href="{{ url_for('admin.reports') }}" class="btn btn-dark mt-2">신고 관리</a>
+            <div class="card h-100 shadow-sm">
+                <div class="card-body bg-warning rounded">
+                    <div class="d-flex flex-column h-100">
+                        <h5 class="card-title">신고 내역</h5>
+                        <h1 class="display-4 mb-3">{{ stats.report_count }}</h1>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('admin.reports') }}" class="btn btn-dark btn-sm">
+                                <i class="bi bi-flag me-1"></i> 신고 관리
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
                     <h5 class="mb-0">최근 가입한 사용자</h5>
                 </div>
                 <div class="card-body">
@@ -81,14 +105,18 @@
                             </tbody>
                         </table>
                     </div>
-                    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary">모든 사용자 보기</a>
+                    <div class="text-end mt-3">
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-people me-1"></i> 모든 사용자 보기
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
                     <h5 class="mb-0">최근 등록된 상품</h5>
                 </div>
                 <div class="card-body">
@@ -118,7 +146,11 @@
                             </tbody>
                         </table>
                     </div>
-                    <a href="{{ url_for('admin.products') }}" class="btn btn-outline-success">모든 상품 보기</a>
+                    <div class="text-end mt-3">
+                        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-box-seam me-1"></i> 모든 상품 보기
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

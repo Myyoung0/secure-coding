@@ -514,4 +514,54 @@ def global_chat():
         return redirect(url_for('chat.view_room', room_id=global_chat_room.id))
     else:
         # 실시간 채팅 탭이 열린 채팅 목록 페이지로 이동
-        return redirect(url_for('chat.index', tab='live-chat')) 
+        return redirect(url_for('chat.index', tab='live-chat'))
+
+@bp.route('/room/<int:room_id>/close', methods=['POST'])
+@login_required
+def close_chat_room(room_id):
+    """채팅방 삭제/닫기"""
+    # 채팅방 정보 가져오기
+    chat_room = ChatRoom.query.get_or_404(room_id)
+    
+    # 글로벌 채팅방은 삭제 불가
+    if chat_room.type == 'public' and chat_room.name == '실시간 전체 채팅':
+        flash('전체 채팅방은 삭제할 수 없습니다.', 'danger')
+        return redirect(url_for('chat.view_room', room_id=room_id))
+    
+    # 1대1 채팅방인지 확인
+    if chat_room.type != 'private':
+        flash('그룹 채팅방은 관리자만 삭제할 수 있습니다.', 'warning')
+        return redirect(url_for('chat.view_room', room_id=room_id))
+    
+    # 현재 사용자가 채팅방 참여자인지 확인
+    participation = ChatParticipant.query.filter_by(
+        user_id=current_user.id,
+        chat_room_id=room_id
+    ).first()
+    
+    if not participation:
+        flash('해당 채팅방에 대한 권한이 없습니다.', 'danger')
+        return redirect(url_for('chat.index'))
+    
+    try:
+        # 1대1 채팅방인 경우, 사용자의 참여 정보만 삭제
+        if request.form.get('action') == 'leave':
+            db.session.delete(participation)
+            db.session.commit()
+            flash('채팅방에서 나갔습니다.', 'success')
+        # 완전 삭제인 경우 채팅방과 메시지를 모두 삭제
+        else:
+            # 메시지 먼저 삭제
+            ChatMessage.query.filter_by(chat_room_id=room_id).delete()
+            # 참여자 정보 삭제
+            ChatParticipant.query.filter_by(chat_room_id=room_id).delete()
+            # 채팅방 삭제
+            db.session.delete(chat_room)
+            db.session.commit()
+            flash('채팅방이 삭제되었습니다.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'채팅방 삭제 실패: {str(e)}')
+        flash('채팅방 삭제 중 오류가 발생했습니다.', 'danger')
+    
+    return redirect(url_for('chat.index')) 
